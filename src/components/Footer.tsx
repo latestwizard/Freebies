@@ -1,8 +1,9 @@
 import React from 'react';
+import { CategoryId } from '../types';
 import { Sparkles, ShieldCheck, Heart } from 'lucide-react';
 
 interface FooterProps {
-  onSelectCategory: (catId: any) => void;
+  onSelectCategory: (catId: CategoryId) => void;
   onOpenSubmitModal: () => void;
 }
 
@@ -36,11 +37,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenSubmitMo
               Browse Categories
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-              <li><button onClick={() => onSelectCategory('tech')} style={{ color: 'inherit' }}>Tech & SaaS Credits</button></li>
-              <li><button onClick={() => onSelectCategory('finance')} style={{ color: 'inherit' }}>Finance & Cash Signup Bonuses</button></li>
-              <li><button onClick={() => onSelectCategory('samples')} style={{ color: 'inherit' }}>Free Physical Samples</button></li>
-              <li><button onClick={() => onSelectCategory('food')} style={{ color: 'inherit' }}>Food & Dining Perks</button></li>
-              <li><button onClick={() => onSelectCategory('entertainment')} style={{ color: 'inherit' }}>Free Audiobooks & Streaming</button></li>
+              <li><button onClick={() => onSelectCategory('tech')} aria-label="View Tech & SaaS Credits" style={{ color: 'inherit' }}>Tech & SaaS Credits</button></li>
+              <li><button onClick={() => onSelectCategory('finance')} aria-label="View Finance & Cash Sign-Up Bonuses" style={{ color: 'inherit' }}>Finance & Cash Signup Bonuses</button></li>
+              <li><button onClick={() => onSelectCategory('samples')} aria-label="View Free Physical Samples" style={{ color: 'inherit' }}>Free Physical Samples</button></li>
+              <li><button onClick={() => onSelectCategory('food')} aria-label="View Food & Dining Perks" style={{ color: 'inherit' }}>Food & Dining Perks</button></li>
+              <li><button onClick={() => onSelectCategory('entertainment')} aria-label="View Free Audiobooks & Streaming" style={{ color: 'inherit' }}>Free Audiobooks & Streaming</button></li>
             </ul>
           </div>
 
@@ -50,7 +51,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenSubmitMo
               Community & Referral Policy
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-              <li><button onClick={onOpenSubmitModal} style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Submit Your Referral Link</button></li>
+              <li><button onClick={onOpenSubmitModal} aria-label="Submit Your Referral Link" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Submit Your Referral Link</button></li>
               <li><span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>FTC Affiliate Disclosure: This website contains affiliate and referral links. Clicking a link may award us an account credit or referral bonus at no additional cost to you.</span></li>
             </ul>
           </div>

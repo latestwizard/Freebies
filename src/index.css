@@ -13,8 +13,8 @@
   --border-hover: rgba(124, 58, 237, 0.4);
 
   --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --text-secondary: #CBD5E1; /* High contrast WCAG AA compliant */
+  --text-muted: #94A3B8;
 
   --accent-primary: #8B5CF6;
   --accent-primary-hover: #7C3AED;
@@ -50,8 +50,8 @@
   --border-hover: rgba(139, 92, 246, 0.5);
 
   --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --text-secondary: #334155; /* High contrast WCAG AA compliant */
+  --text-muted: #64748B;
 
   --accent-glow: rgba(139, 92, 246, 0.12);
   --shadow-md: 0 8px 24px rgba(148, 163, 184, 0.15);
@@ -90,6 +90,16 @@ button {
   border: none;
   background: none;
   outline: none;
+}
+
+/* WCAG Focus Visible Outline Styling */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 2px !important;
 }
 
 input, textarea, select {
@@ -178,6 +188,13 @@ input, textarea, select {
   gap: 1.5rem;
   margin-top: 2rem;
   margin-bottom: 4rem;
+}
+
+/* Mobile Responsive Utility */
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
 }
 
 /* Custom Scrollbar */

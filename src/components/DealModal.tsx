@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Deal } from '../types';
+import { useClipboard } from '../hooks/useClipboard';
 import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface DealModalProps {
@@ -21,23 +22,31 @@ export const DealModal: React.FC<DealModalProps> = ({
   isBookmarked,
   onClaim,
 }) => {
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
+  const { copied: copiedLink, copy: copyLink } = useClipboard();
+  const { copied: copiedCode, copy: copyCode } = useClipboard();
   const [reported, setReported] = useState(false);
+
+  // Keyboard 'Escape' Key Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && deal) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deal, onClose]);
 
   if (!deal) return null;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(deal.referralUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+    copyLink(deal.referralUrl);
   };
 
   const handleCopyCode = () => {
-    if (!deal.promoCode) return;
-    navigator.clipboard.writeText(deal.promoCode);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    if (deal.promoCode) {
+      copyCode(deal.promoCode);
+    }
   };
 
   const handleClaim = () => {
@@ -52,6 +61,9 @@ export const DealModal: React.FC<DealModalProps> = ({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="deal-modal-title"
       style={{
         position: 'fixed',
         top: 0,
@@ -87,6 +99,7 @@ export const DealModal: React.FC<DealModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
+          aria-label="Close offer modal"
           style={{
             position: 'absolute',
             top: '1.25rem',
@@ -129,7 +142,7 @@ export const DealModal: React.FC<DealModalProps> = ({
               <span>{deal.provider}</span>
               <CheckCircle2 size={14} style={{ color: 'var(--success-color)' }} />
             </div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+            <h2 id="deal-modal-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {deal.title}
             </h2>
           </div>
@@ -147,9 +160,9 @@ export const DealModal: React.FC<DealModalProps> = ({
 
         {/* Full Overview Description */}
         <div style={{ marginBottom: '1.75rem' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             Offer Overview
-          </h4>
+          </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6 }}>
             {deal.fullDesc}
           </p>
@@ -157,10 +170,10 @@ export const DealModal: React.FC<DealModalProps> = ({
 
         {/* Step-by-Step Instructions */}
         <div style={{ marginBottom: '1.75rem' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ShieldCheck size={18} style={{ color: 'var(--accent-primary)' }} />
             <span>How to Claim (Step-by-Step)</span>
-          </h4>
+          </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {deal.steps.map((step, idx) => (
@@ -206,6 +219,7 @@ export const DealModal: React.FC<DealModalProps> = ({
           {deal.promoCode && (
             <button
               onClick={handleCopyCode}
+              aria-label={`Copy promo code ${deal.promoCode}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -230,6 +244,7 @@ export const DealModal: React.FC<DealModalProps> = ({
 
           <button
             onClick={handleCopyLink}
+            aria-label="Copy direct referral link"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -284,6 +299,7 @@ export const DealModal: React.FC<DealModalProps> = ({
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={() => onUpvote(deal.id)}
+                aria-label={`Upvote offer ${deal.title}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -303,6 +319,7 @@ export const DealModal: React.FC<DealModalProps> = ({
 
               <button
                 onClick={() => onToggleBookmark(deal.id)}
+                aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark offer'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -323,6 +340,7 @@ export const DealModal: React.FC<DealModalProps> = ({
 
             <button
               onClick={handleReportExpired}
+              aria-label="Report offer as expired"
               style={{
                 fontSize: '0.78rem',
                 color: reported ? 'var(--warning-color)' : 'var(--text-muted)',

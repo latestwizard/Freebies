@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CategoryId, Deal } from '../types';
 import { CATEGORIES } from '../data/deals';
-import { X, Sparkles } from 'lucide-react';
+import { sanitizeText, isValidUrl } from '../utils/security';
+import { X, Sparkles, AlertCircle } from 'lucide-react';
 
 interface SubmitDealModalProps {
   isOpen: boolean;
@@ -22,30 +23,58 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
   const [promoCode, setPromoCode] = useState('');
   const [shortDesc, setShortDesc] = useState('');
   const [stepsInput, setStepsInput] = useState('');
+  const [urlError, setUrlError] = useState('');
+
+  // Keyboard 'Escape' Key Handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !provider || !referralUrl || !valueText) return;
+    setUrlError('');
 
-    const initials = provider.substring(0, 3).toUpperCase();
-    const stepsArray = stepsInput
-      ? stepsInput.split('\n').filter((s) => s.trim().length > 0)
+    // Strict URL Protocol Validation (http or https only)
+    if (!isValidUrl(referralUrl)) {
+      setUrlError('Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+
+    // Sanitize user inputs to prevent XSS
+    const cleanTitle = sanitizeText(title);
+    const cleanProvider = sanitizeText(provider);
+    const cleanValueText = sanitizeText(valueText);
+    const cleanPromoCode = sanitizeText(promoCode);
+    const cleanShortDesc = sanitizeText(shortDesc);
+    const cleanStepsInput = sanitizeText(stepsInput);
+
+    if (!cleanTitle || !cleanProvider || !cleanValueText) return;
+
+    const initials = cleanProvider.substring(0, 3).toUpperCase();
+    const stepsArray = cleanStepsInput
+      ? cleanStepsInput.split('\n').filter((s) => s.trim().length > 0)
       : ['Click referral link to sign up.', 'Complete eligible sign up requirements to unlock bonus.'];
 
     const newDeal: Deal = {
       id: `user-submitted-${Date.now()}`,
-      title,
-      provider,
+      title: cleanTitle,
+      provider: cleanProvider,
       logoText: initials,
       logoBg: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
       category,
-      shortDesc: shortDesc || 'Community submitted verified freebie offer.',
-      fullDesc: shortDesc || 'Community submitted offer. Make sure to follow referral requirements.',
-      valueText,
+      shortDesc: cleanShortDesc || 'Community submitted verified freebie offer.',
+      fullDesc: cleanShortDesc || 'Community submitted offer. Make sure to follow referral requirements.',
+      valueText: cleanValueText,
       referralUrl,
-      promoCode: promoCode || undefined,
+      promoCode: cleanPromoCode || undefined,
       upvotes: 1,
       claimsCount: 1,
       verifiedDate: 'Just now',
@@ -69,6 +98,9 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="submit-deal-title"
       style={{
         position: 'fixed',
         top: 0,
@@ -102,6 +134,7 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
       >
         <button
           onClick={onClose}
+          aria-label="Close modal"
           style={{
             position: 'absolute',
             top: '1.25rem',
@@ -124,7 +157,7 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
             <Sparkles size={20} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Submit a Referral Freebie</h2>
+            <h2 id="submit-deal-title" style={{ fontSize: '1.3rem', fontWeight: 800 }}>Submit a Referral Freebie</h2>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Share your referral link with thousands of daily visitors</p>
           </div>
         </div>
@@ -213,9 +246,18 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
               required
               placeholder="https://example.com/register?ref=yourcode"
               value={referralUrl}
-              onChange={(e) => setReferralUrl(e.target.value)}
-              style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', outline: 'none' }}
+              onChange={(e) => {
+                setReferralUrl(e.target.value);
+                if (urlError) setUrlError('');
+              }}
+              style={{ width: '100%', padding: '0.65rem 0.9rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-input)', border: `1px solid ${urlError ? 'var(--danger-color)' : 'var(--border-color)'}`, color: 'var(--text-primary)', outline: 'none' }}
             />
+            {urlError && (
+              <div style={{ color: 'var(--danger-color)', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.25rem' }}>
+                <AlertCircle size={13} />
+                <span>{urlError}</span>
+              </div>
+            )}
           </div>
 
           <div>

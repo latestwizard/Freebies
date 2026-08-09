@@ -28,7 +28,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 
   return (
     <div style={{ margin: '1.5rem 0', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-      <div style={{ display: 'flex', gap: '0.75rem', minWidth: 'max-content' }}>
+      <div role="tablist" aria-label="Freebie Categories" style={{ display: 'flex', gap: '0.75rem', minWidth: 'max-content' }}>
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           const count = categoryCounts[cat.id] || 0;
@@ -36,6 +36,9 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
           return (
             <button
               key={cat.id}
+              role="tab"
+              aria-selected={isSelected}
+              aria-label={`Filter by ${cat.name} (${count} offers available)`}
               onClick={() => onSelectCategory(cat.id)}
               style={{
                 display: 'flex',

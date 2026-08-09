@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Deal } from '../types';
+import { useClipboard } from '../hooks/useClipboard';
 import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye } from 'lucide-react';
 
 interface DealCardProps {
@@ -12,7 +13,7 @@ interface DealCardProps {
   onClaim: (id: string) => void;
 }
 
-export const DealCard: React.FC<DealCardProps> = ({
+const DealCardComponent: React.FC<DealCardProps> = ({
   deal,
   onSelectDeal,
   onUpvote,
@@ -21,14 +22,13 @@ export const DealCard: React.FC<DealCardProps> = ({
   isBookmarked,
   onClaim,
 }) => {
-  const [copiedCode, setCopiedCode] = useState(false);
+  const { copied: copiedCode, copy: copyCode } = useClipboard();
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!deal.promoCode) return;
-    navigator.clipboard.writeText(deal.promoCode);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    if (deal.promoCode) {
+      copyCode(deal.promoCode);
+    }
   };
 
   const handleClaimClick = (e: React.MouseEvent) => {
@@ -120,6 +120,7 @@ export const DealCard: React.FC<DealCardProps> = ({
                 e.stopPropagation();
                 onToggleBookmark(deal.id);
               }}
+              aria-label={isBookmarked ? `Remove ${deal.title} from bookmarks` : `Save ${deal.title} to bookmarks`}
               style={{
                 padding: '0.4rem',
                 color: isBookmarked ? 'var(--accent-primary)' : 'var(--text-muted)',
@@ -179,6 +180,7 @@ export const DealCard: React.FC<DealCardProps> = ({
               Code: <strong style={{ color: 'var(--accent-primary)', letterSpacing: '0.05em' }}>{deal.promoCode}</strong>
             </div>
             <button
+              aria-label={`Copy promo code ${deal.promoCode}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -204,6 +206,7 @@ export const DealCard: React.FC<DealCardProps> = ({
               e.stopPropagation();
               onUpvote(deal.id);
             }}
+            aria-label={`Upvote ${deal.title}. Current votes: ${deal.upvotes}`}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -232,6 +235,7 @@ export const DealCard: React.FC<DealCardProps> = ({
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => onSelectDeal(deal)}
+            aria-label={`View claim steps for ${deal.title}`}
             style={{
               flex: 1,
               padding: '0.65rem',
@@ -253,6 +257,7 @@ export const DealCard: React.FC<DealCardProps> = ({
 
           <button
             onClick={handleClaimClick}
+            aria-label={`Claim freebie for ${deal.title}`}
             style={{
               flex: 2,
               padding: '0.65rem',
@@ -276,3 +281,5 @@ export const DealCard: React.FC<DealCardProps> = ({
     </div>
   );
 };
+
+export const DealCard = React.memo(DealCardComponent);
