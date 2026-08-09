@@ -26,6 +26,9 @@ jobs:
         run: npm ci
 
       - name: Run multi-source scraper
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: npm run fetch-freebies
 
       - name: Commit and push updated deals data
@@ -35,7 +38,6 @@ jobs:
           
           git add src/data/aggregatedDeals.json
           
-          # Check if there are changes before committing
           if git diff --staged --quiet; then
             echo "No new deal updates found."
           else

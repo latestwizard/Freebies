@@ -2,12 +2,49 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Unified Multi-Source Freebie Scraper
- * Aggregates real-time freebie deals from:
- * 1. Reddit r/freebies (Community Sample Box & Freebies)
- * 2. Doctor of Credit (Bank Signup Cash Bonuses & Free Money)
- * 3. Free Stuff Finder (Physical Samples & Retailer Freebies)
+ * Sends a webhook notification to Discord or Slack on scraper errors.
  */
+async function sendWebhookAlert(errors) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.log('⚠️ No DISCORD_WEBHOOK_URL or SLACK_WEBHOOK_URL environment variable set. Skipping alert.');
+    return;
+  }
+
+  const isDiscord = webhookUrl.includes('discord.com');
+  const errorDetails = errors.map(e => `• **${e.source}**: ${e.error}`).join('\n');
+
+  const payload = isDiscord
+    ? {
+        username: 'FreebieVerse Scraper Bot',
+        embeds: [
+          {
+            title: '🚨 Scraper Source Failure Alert',
+            description: `One or more RSS feeds failed during automated execution:\n\n${errorDetails}`,
+            color: 15158332, // Red
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      }
+    : {
+        text: `🚨 *FreebieVerse Scraper Alert*\nOne or more RSS feeds failed during automated execution:\n${errorDetails}`,
+      };
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      console.log('✅ Sent webhook failure alert successfully.');
+    } else {
+      console.error(`❌ Webhook notification failed with status ${res.status}`);
+    }
+  } catch (err) {
+    console.error('❌ Failed to dispatch webhook notification:', err.message);
+  }
+}
 
 function decodeEntities(str) {
   if (!str) return '';
@@ -23,17 +60,15 @@ function decodeEntities(str) {
     .trim();
 }
 
-// 1. Fetch Reddit r/freebies RSS
-async function fetchReddit() {
+async function fetchReddit(errors) {
   console.log('🤖 [1/3] Fetching Reddit r/freebies...');
   try {
     const res = await fetch('https://old.reddit.com/r/freebies/.rss', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }
     });
-    if (!res.ok) return [];
+    if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
     const xml = await res.text();
-    // Split XML by entry tags
     const entries = xml.split('<entry>').slice(1);
     const deals = [];
     let count = 0;
@@ -81,21 +116,23 @@ async function fetchReddit() {
         terms: 'Community freebie offer sourced from Reddit r/freebies. Provider terms apply.'
       });
     }
+
+    if (deals.length === 0) throw new Error('Parsed 0 deals from feed.');
     return deals;
   } catch (err) {
     console.error('Error fetching Reddit:', err.message);
+    errors.push({ source: 'Reddit r/freebies', error: err.message });
     return [];
   }
 }
 
-// 2. Fetch Doctor of Credit RSS
-async function fetchDoctorOfCredit() {
+async function fetchDoctorOfCredit(errors) {
   console.log('💳 [2/3] Fetching Doctor of Credit (Free Money & Bank Bonuses)...');
   try {
     const res = await fetch('https://www.doctorofcredit.com/category/free-money/feed/', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }
     });
-    if (!res.ok) return [];
+    if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
     const xml = await res.text();
     const items = xml.split('<item>').slice(1);
@@ -144,21 +181,23 @@ async function fetchDoctorOfCredit() {
         terms: 'Curated by Doctor of Credit. Terms apply per financial institution.'
       });
     }
+
+    if (deals.length === 0) throw new Error('Parsed 0 deals from feed.');
     return deals;
   } catch (err) {
     console.error('Error fetching Doctor of Credit:', err.message);
+    errors.push({ source: 'Doctor of Credit', error: err.message });
     return [];
   }
 }
 
-// 3. Fetch Free Stuff Finder RSS
-async function fetchFreeStuffFinder() {
+async function fetchFreeStuffFinder(errors) {
   console.log('🎁 [3/3] Fetching Free Stuff Finder...');
   try {
     const res = await fetch('https://www.freestufffinder.com/feed/', {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }
     });
-    if (!res.ok) return [];
+    if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
     const xml = await res.text();
     const items = xml.split('<item>').slice(1);
@@ -207,30 +246,36 @@ async function fetchFreeStuffFinder() {
         terms: 'Sourced from Free Stuff Finder. Terms apply per merchant.'
       });
     }
+
+    if (deals.length === 0) throw new Error('Parsed 0 deals from feed.');
     return deals;
   } catch (err) {
     console.error('Error fetching Free Stuff Finder:', err.message);
+    errors.push({ source: 'Free Stuff Finder', error: err.message });
     return [];
   }
 }
 
-// Master Aggregator Function
 async function main() {
   console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper...\n');
 
-  const redditDeals = await fetchReddit();
-  const docDeals = await fetchDoctorOfCredit();
-  const fsfDeals = await fetchFreeStuffFinder();
+  const errors = [];
+  const redditDeals = await fetchReddit(errors);
+  const docDeals = await fetchDoctorOfCredit(errors);
+  const fsfDeals = await fetchFreeStuffFinder(errors);
 
   const allDeals = [...redditDeals, ...docDeals, ...fsfDeals];
 
-  const outputPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
-  fs.writeFileSync(outputPath, JSON.stringify(allDeals, null, 2));
+  if (allDeals.length > 0) {
+    const outputPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
+    fs.writeFileSync(outputPath, JSON.stringify(allDeals, null, 2));
+    console.log(`\n🎉 Saved ${allDeals.length} total live deals to ${outputPath}`);
+  }
 
-  console.log(`\n🎉 Aggregation Complete! Saved ${allDeals.length} total live deals to ${outputPath}`);
-  console.log(` - r/freebies: ${redditDeals.length} deals`);
-  console.log(` - Doctor of Credit: ${docDeals.length} deals`);
-  console.log(` - Free Stuff Finder: ${fsfDeals.length} deals`);
+  if (errors.length > 0) {
+    console.error(`\n⚠️ Scraper finished with ${errors.length} error(s). Sending webhook alert...`);
+    await sendWebhookAlert(errors);
+  }
 }
 
 main();
