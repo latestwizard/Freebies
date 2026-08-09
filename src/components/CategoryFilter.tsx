@@ -1,7 +1,7 @@
 import React from 'react';
 import { CATEGORIES } from '../data/deals';
 import { CategoryId } from '../types';
-import { Sparkles, Code, Coins, Gift, Utensils, Tv } from 'lucide-react';
+import { Sparkles, Code, Coins, Gift, Utensils, Tv, Cake } from 'lucide-react';
 
 interface CategoryFilterProps {
   selectedCategory: CategoryId;
@@ -22,6 +22,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       case 'Gift': return <Gift size={18} />;
       case 'Utensils': return <Utensils size={18} />;
       case 'Tv': return <Tv size={18} />;
+      case 'Cake': return <Cake size={18} />;
       default: return <Sparkles size={18} />;
     }
   };

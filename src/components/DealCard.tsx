@@ -90,6 +90,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         return { bg: 'rgba(239, 68, 68, 0.15)', text: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)' };
       case 'FEATURED':
         return { bg: 'linear-gradient(135deg, #8B5CF6, #EC4899)', text: '#fff' };
+      case 'BIRTHDAY':
+        return { bg: 'linear-gradient(135deg, #EC4899, #F59E0B)', text: '#fff' };
       default:
         return { bg: 'rgba(139, 92, 246, 0.15)', text: 'var(--accent-primary)', border: '1px solid rgba(139, 92, 246, 0.3)' };
     }

@@ -131,6 +131,7 @@ export const App: React.FC = () => {
   const categoryCounts = useMemo(() => {
     const counts: Record<CategoryId, number> = {
       all: deals.length,
+      birthday: 0,
       tech: 0,
       finance: 0,
       samples: 0,

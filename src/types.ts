@@ -1,6 +1,6 @@
-export type CategoryId = 'all' | 'tech' | 'finance' | 'samples' | 'food' | 'entertainment';
+export type CategoryId = 'all' | 'tech' | 'finance' | 'samples' | 'food' | 'entertainment' | 'birthday';
 
-export type CategoryIcon = 'Sparkles' | 'Code' | 'Coins' | 'Gift' | 'Utensils' | 'Tv';
+export type CategoryIcon = 'Sparkles' | 'Code' | 'Coins' | 'Gift' | 'Utensils' | 'Tv' | 'Cake';
 
 export interface Category {
   id: CategoryId;
@@ -9,7 +9,7 @@ export interface Category {
   description: string;
 }
 
-export type DealBadge = 'HOT' | 'VERIFIED' | 'LIMITED' | 'FEATURED' | 'EXCLUSIVITY';
+export type DealBadge = 'HOT' | 'VERIFIED' | 'LIMITED' | 'FEATURED' | 'EXCLUSIVITY' | 'BIRTHDAY' | 'REDDIT' | 'DOC' | 'FSF';
 
 export type DealStatus = 'pending' | 'verified' | 'expired' | 'rejected';
 
