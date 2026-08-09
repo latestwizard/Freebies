@@ -4,7 +4,11 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/go/:id",
+      "destination": "/api/go?id=:id"
+    },
+    {
+      "source": "/((?!api/|go/).*)",
       "destination": "/index.html"
     }
   ]
