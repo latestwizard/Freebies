@@ -26,6 +26,14 @@ coverage
 # Compiled binary packages (https://nodejs.org/documentation/gyp/)
 build/Release
 
+# Python virtual environment
+.venv/
+venv/
+ENV/
+
+# Repomix output
+repomix-output.*
+
 # Dependency directories
 node_modules/
 jspm_packages/
