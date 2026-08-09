@@ -6,30 +6,25 @@
 - Tech Stack: Vite 6, React 19, TypeScript 5.7, Lucide Icons, Vanilla CSS Glassmorphism
 - Status: Published to GitHub (`latestwizard/Freebies`). Dev server active on `http://localhost:3000/`.
 
-## Architectural Overhaul & Data Integrity Fixes Implemented
+## Sprint 1 Hardening & Production Features Implemented
 
-1. **Deal Status Lifecycle (`'pending'` | `'verified'` | `'expired'` | `'rejected'`)**:
-   - Updated `Deal` type interface in [types.ts](file:///Users/ryan/Freebies/src/types.ts) to enforce explicit verification statuses.
-   - User submissions in `SubmitDealModal` now initialize as `status: 'pending'` and display a **COMMUNITY (PENDING REVIEW)** badge. They are no longer auto-assigned `VERIFIED` status.
-   - Seed offers carry explicit `status: 'verified'` and `verifiedAt` timestamps.
+1. **Content Security Policy (CSP)**:
+   - Added strict `<meta http-equiv="Content-Security-Policy">` tag to [index.html](file:///Users/ryan/Freebies/index.html) locking down trusted script, font, image, and style origins.
 
-2. **React Stale Modal State Elimination**:
-   - Refactored `App.tsx` state to track `selectedDealId: string | null` instead of storing a static deal snapshot object.
-   - `selectedDeal` is derived live via `useMemo`. When claims or upvotes update in state, the active modal updates in real-time.
+2. **Toast Notification System**:
+   - Created [ToastContainer.tsx](file:///Users/ryan/Freebies/src/components/ToastContainer.tsx) floating notification UI.
+   - Triggers non-intrusive success/warning/info toast popups on promo code copy, bookmarking, upvoting, referral link copying, deal submission, and reporting.
 
-3. **Defensive LocalStorage Loader**:
-   - Created [storage.ts](file:///Users/ryan/Freebies/src/utils/storage.ts) with `safeLoadLocalStorage<T>` wrapping all `localStorage` calls in `try/catch` and runtime array type validation. Prevents app crashes from malformed JSON keys.
+3. **Native Web Share API & Link Sharing**:
+   - Integrated `navigator.share` on `DealCard` and `DealModal` for seamless social/mobile sharing, with automatic fallback to clipboard URL copy.
 
-4. **Functional "Report Expired" Handling**:
-   - Clicking "Report Expired" in `DealModal` triggers `handleReportExpired` in `App.tsx`, changing the deal status to `'expired'` in state and visually flagging it in the grid.
+4. **Analytics Event Logger**:
+   - Created [analytics.ts](file:///Users/ryan/Freebies/src/utils/analytics.ts) tracking claims, upvotes, searches, submissions, shares, and theme toggles with debug console logging and custom window events.
 
-5. **Modal Background Scroll Lock**:
-   - Both `DealModal` and `SubmitDealModal` lock background scrolling (`document.body.style.overflow = 'hidden'`) while open.
-
-6. **Dynamic Catalog Statistics**:
-   - Hero section stats (`totalDeals`, `verifiedCount`, `totalClaimsCount`) are calculated dynamically from the deal list rather than using hardcoded text.
+5. **Deal Expiration Utility**:
+   - Created [expiration.ts](file:///Users/ryan/Freebies/src/utils/expiration.ts) with `getDaysSinceVerification` and `isDealStale` helpers.
 
 ## Verification & Repomix
 - `npm run build` verified cleanly with zero errors.
-- `npx repomix` executed, updating `repomix-output.xml` (26,967 tokens across 22 files).
+- `npx repomix` executed, updating `repomix-output.xml` (29,364 tokens across 25 files).
 - Pushed to `main` branch on GitHub (`latestwizard/Freebies`).
