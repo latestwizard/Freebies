@@ -48,7 +48,7 @@ export const INITIAL_DEALS: Deal[] = [
     shortDesc: 'Get $200 in free cloud hosting credits valid for 60 days to spin up VPS instances, databases, or Kubernetes clusters.',
     fullDesc: 'DigitalOcean gives new users $200 in credit to build, test, and scale applications on their developer-friendly cloud platform. Deploy Droplets, Managed Databases, App Platform, and S3-compatible Object Storage completely free.',
     valueText: '$200 Free Credit',
-    referralUrl: 'https://m.do.co/c/freebie_referral_demo',
+    referralUrl: 'https://www.digitalocean.com/?refcode=46e32c90a33b&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge',
     promoCode: 'DO200BONUS',
     upvotes: 342,
     claimsCount: 1890,

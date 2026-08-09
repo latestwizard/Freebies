@@ -37,6 +37,6 @@ describe('Vercel Serverless Function: api/go', () => {
     handler(req, res);
 
     expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache, no-store, must-revalidate');
-    expect(res.redirect).toHaveBeenCalledWith(302, expect.stringContaining('m.do.co'));
+    expect(res.redirect).toHaveBeenCalledWith(302, expect.stringContaining('digitalocean.com'));
   });
 });
