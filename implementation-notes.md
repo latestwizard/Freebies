@@ -2,8 +2,9 @@
 
 ## Project Setup & Environment
 - Workspace location: `/Users/ryan/Freebies`
+- GitHub Repository: https://github.com/latestwizard/Freebies
 - Tech Stack: Vite 6, React 19, TypeScript 5.7, Lucide Icons, Vanilla CSS Glassmorphism
-- Status: Dev server running at `http://localhost:3000/`, production build tested cleanly.
+- Status: Published to GitHub (`latestwizard/Freebies`). Dev server active on `http://localhost:3000/`.
 
 ## Key Features Implemented
 1. **Header & Navigation Bar**:
@@ -28,7 +29,7 @@
    - "Steps" modal trigger
 5. **Step-by-Step Deal Modal**:
    - Detailed offer overview
-   - Step-by-step instructions (1, 2, 3...)
+   - Step-by-Step instructions (1, 2, 3...)
    - Promo code copy button & referral URL copy button
    - Expired link report trigger
    - FTC disclosure footnote
@@ -41,6 +42,4 @@
 - **FTC Affiliate Compliance**: Added visible FTC disclosure banners on both the top header and inside every offer modal.
 - **Strict TypeScript Lints**: Fixed unused imports and replaced invalid style keys with typed `justifyContent`.
 - **Theme Persistence**: Theme preference (`dark` / `light`) is saved to `localStorage` and synchronized with `data-theme` attribute on the HTML root element.
-
-## Deviations from Original Plan
-- None. Built as planned.
+- **Git & GitHub Integration**: Configured `.gitignore` excluding `node_modules` and `dist/`, pushed `main` branch to GitHub (`latestwizard/Freebies`).
