@@ -4,7 +4,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 describe('Vercel Serverless Function: api/go', () => {
   it('returns 400 if deal ID parameter is missing', () => {
-    const req = { query: {} } as VercelRequest;
+    const req = { query: {} } as unknown as VercelRequest;
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
@@ -17,7 +17,7 @@ describe('Vercel Serverless Function: api/go', () => {
   });
 
   it('redirects to homepage with error if deal is not found', () => {
-    const req = { query: { id: 'unknown-deal-id' } } as VercelRequest;
+    const req = { query: { id: 'unknown-deal-id' } } as unknown as VercelRequest;
     const res = {
       redirect: vi.fn(),
     } as unknown as VercelResponse;
@@ -28,7 +28,7 @@ describe('Vercel Serverless Function: api/go', () => {
   });
 
   it('redirects 302 to actual referral URL for valid deal', () => {
-    const req = { query: { id: 'digitalocean-credits' } } as VercelRequest;
+    const req = { query: { id: 'digitalocean-credits' } } as unknown as VercelRequest;
     const res = {
       setHeader: vi.fn(),
       redirect: vi.fn(),

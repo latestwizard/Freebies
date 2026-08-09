@@ -1,8 +1,9 @@
 # Implementation Notes - FreebieVerse Referral Hub
 
 ## Project Setup & Environment
+
 - Workspace location: `/Users/ryan/Freebies`
-- GitHub Repository: https://github.com/latestwizard/Freebies
+- GitHub Repository: [github.com/latestwizard/Freebies](https://github.com/latestwizard/Freebies)
 - Tech Stack: Vite 6, React 19, TypeScript 5.7, Vercel Serverless Functions, Vitest 3, Testing Library, Lucide Icons, Vanilla CSS Glassmorphism
 - Status: Published to GitHub (`latestwizard/Freebies`). Deployed on Vercel. Dev server active on `http://localhost:3000/`.
 
@@ -20,6 +21,7 @@
    - **25 passing unit & integration tests** across 7 test files (`npm test`).
 
 ## Verification & Repomix
+
 - `npm test` executed — **25/25 tests passing** cleanly across 7 files.
 - `npm run build` verified cleanly with zero errors.
 - `npx repomix` executed, updating `repomix-output.xml` (33,738 tokens across 36 files).
