@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
-import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
+import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2, Clock, Share2 } from 'lucide-react';
 
 interface DealModalProps {
   deal: Deal | null;
@@ -12,6 +13,7 @@ interface DealModalProps {
   isBookmarked: boolean;
   onClaim: (id: string) => void;
   onReportExpired: (id: string) => void;
+  addToast: (msg: string, type?: 'success' | 'warning' | 'info') => void;
 }
 
 export const DealModal: React.FC<DealModalProps> = ({
@@ -23,6 +25,7 @@ export const DealModal: React.FC<DealModalProps> = ({
   isBookmarked,
   onClaim,
   onReportExpired,
+  addToast,
 }) => {
   const { copied: copiedLink, copy: copyLink } = useClipboard();
   const { copied: copiedCode, copy: copyCode } = useClipboard();
@@ -50,23 +53,43 @@ export const DealModal: React.FC<DealModalProps> = ({
 
   const handleCopyLink = () => {
     copyLink(deal.referralUrl);
+    addToast('Referral link copied to clipboard!', 'success');
   };
 
   const handleCopyCode = () => {
     if (deal.promoCode) {
       copyCode(deal.promoCode);
+      addToast(`Promo code copied: ${deal.promoCode}`, 'success');
     }
   };
 
   const handleClaim = () => {
     onClaim(deal.id);
+    trackEvent('deal_claimed_modal', { dealId: deal.id, provider: deal.provider });
+    addToast(`Opening ${deal.provider} referral link...`, 'info');
     window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleReport = () => {
     onReportExpired(deal.id);
     setReportedMessage(true);
+    addToast('Offer flagged as expired. Thank you for keeping the catalog fresh!', 'warning');
+    trackEvent('deal_reported_expired', { dealId: deal.id, title: deal.title });
     setTimeout(() => setReportedMessage(false), 4000);
+  };
+
+  const handleShare = () => {
+    trackEvent('deal_shared_modal', { dealId: deal.id });
+    if (navigator.share) {
+      navigator.share({
+        title: deal.title,
+        text: `Claim ${deal.title} on FreebieVerse!`,
+        url: deal.referralUrl,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(deal.referralUrl);
+      addToast('Referral link copied to clipboard!', 'success');
+    }
   };
 
   return (
@@ -327,7 +350,10 @@ export const DealModal: React.FC<DealModalProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.5rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
-                onClick={() => onUpvote(deal.id)}
+                onClick={() => {
+                  onUpvote(deal.id);
+                  addToast(isUpvoted ? 'Upvote removed' : 'Upvoted offer!', isUpvoted ? 'info' : 'success');
+                }}
                 aria-label={`Upvote offer ${deal.title}`}
                 style={{
                   display: 'flex',
@@ -347,7 +373,10 @@ export const DealModal: React.FC<DealModalProps> = ({
               </button>
 
               <button
-                onClick={() => onToggleBookmark(deal.id)}
+                onClick={() => {
+                  onToggleBookmark(deal.id);
+                  addToast(isBookmarked ? 'Removed from saved offers' : 'Saved offer to bookmarks!', isBookmarked ? 'info' : 'success');
+                }}
                 aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark offer'}
                 style={{
                   display: 'flex',
@@ -364,6 +393,26 @@ export const DealModal: React.FC<DealModalProps> = ({
               >
                 <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
                 <span>{isBookmarked ? 'Saved' : 'Save'}</span>
+              </button>
+
+              <button
+                onClick={handleShare}
+                aria-label="Share offer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-full)',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600
+                }}
+              >
+                <Share2 size={14} />
+                <span>Share</span>
               </button>
             </div>
 

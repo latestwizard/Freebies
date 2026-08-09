@@ -2,18 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { CategoryId, Deal } from '../types';
 import { CATEGORIES } from '../data/deals';
 import { sanitizeText, isValidUrl } from '../utils/security';
+import { trackEvent } from '../utils/analytics';
 import { X, Sparkles, AlertCircle, Clock } from 'lucide-react';
 
 interface SubmitDealModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (newDeal: Deal) => void;
+  addToast: (msg: string, type?: 'success' | 'warning' | 'info') => void;
 }
 
 export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  addToast,
 }) => {
   const [title, setTitle] = useState('');
   const [provider, setProvider] = useState('');
@@ -88,12 +91,14 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
       verifiedDate: 'Pending Review',
       status: 'pending',
       createdAt: new Date().toISOString().split('T')[0],
-      badge: undefined, // Badges are reserved for verified deals
+      badge: undefined,
       steps: stepsArray,
       terms: 'Community submitted referral. Verification pending.'
     };
 
     onSubmit(newDeal);
+    addToast('Offer submitted for community review!', 'success');
+    trackEvent('deal_submitted', { title: cleanTitle, provider: cleanProvider, category });
     onClose();
 
     // Reset form

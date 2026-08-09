@@ -1,7 +1,8 @@
 import React from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
-import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye, Clock, AlertTriangle } from 'lucide-react';
+import { trackEvent } from '../utils/analytics';
+import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye, Clock, AlertTriangle, Share2 } from 'lucide-react';
 
 interface DealCardProps {
   deal: Deal;
@@ -11,6 +12,7 @@ interface DealCardProps {
   onToggleBookmark: (id: string) => void;
   isBookmarked: boolean;
   onClaim: (id: string) => void;
+  addToast: (msg: string, type?: 'success' | 'warning' | 'info') => void;
 }
 
 const DealCardComponent: React.FC<DealCardProps> = ({
@@ -21,6 +23,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onToggleBookmark,
   isBookmarked,
   onClaim,
+  addToast,
 }) => {
   const { copied: copiedCode, copy: copyCode } = useClipboard();
 
@@ -28,13 +31,33 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     e.stopPropagation();
     if (deal.promoCode) {
       copyCode(deal.promoCode);
+      addToast(`Copied code: ${deal.promoCode}`, 'success');
+      trackEvent('promo_code_copied', { dealId: deal.id, code: deal.promoCode });
     }
   };
 
   const handleClaimClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClaim(deal.id);
+    trackEvent('deal_claimed', { dealId: deal.id, provider: deal.provider, title: deal.title });
+    addToast(`Opening ${deal.provider} referral link...`, 'info');
     window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    trackEvent('deal_shared', { dealId: deal.id, title: deal.title });
+
+    if (navigator.share) {
+      navigator.share({
+        title: deal.title,
+        text: `Claim ${deal.title} on FreebieVerse!`,
+        url: deal.referralUrl,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(deal.referralUrl);
+      addToast('Referral link copied to clipboard!', 'success');
+    }
   };
 
   const getBadgeStyle = (badge?: string, status?: string) => {
@@ -77,7 +100,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       onClick={() => onSelectDeal(deal)}
     >
       <div>
-        {/* Top Header: Logo, Provider, Badge & Bookmark */}
+        {/* Top Header: Logo, Provider, Badge & Bookmark/Share */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
@@ -111,7 +134,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span
               style={{
                 fontSize: '0.7rem',
@@ -127,9 +150,19 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             </span>
 
             <button
+              onClick={handleShare}
+              aria-label={`Share ${deal.title}`}
+              style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
+              title="Share Offer"
+            >
+              <Share2 size={16} />
+            </button>
+
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleBookmark(deal.id);
+                addToast(isBookmarked ? 'Removed from saved offers' : 'Saved offer to bookmarks!', isBookmarked ? 'info' : 'success');
               }}
               aria-label={isBookmarked ? `Remove ${deal.title} from bookmarks` : `Save ${deal.title} to bookmarks`}
               style={{
@@ -216,6 +249,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onUpvote(deal.id);
+              addToast(isUpvoted ? 'Upvote removed' : 'Upvoted offer!', isUpvoted ? 'info' : 'success');
+              trackEvent('deal_upvoted', { dealId: deal.id, action: isUpvoted ? 'remove' : 'add' });
             }}
             aria-label={`Upvote ${deal.title}. Current votes: ${deal.upvotes}`}
             style={{

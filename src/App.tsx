@@ -1,17 +1,34 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CategoryId, Deal } from './types';
 import { INITIAL_DEALS, CATEGORIES } from './data/deals';
 import { safeLoadLocalStorage, safeSetLocalStorage } from './utils/storage';
+import { trackEvent } from './utils/analytics';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { CategoryFilter } from './components/CategoryFilter';
 import { DealCard } from './components/DealCard';
 import { DealModal } from './components/DealModal';
 import { SubmitDealModal } from './components/SubmitDealModal';
+import { ToastContainer, ToastMessage } from './components/ToastContainer';
 import { Footer } from './components/Footer';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export const App: React.FC = () => {
+  // Toast notifications state
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = useCallback((message: string, type: 'success' | 'warning' | 'info' = 'info') => {
+    const id = `toast-${Date.now()}-${Math.random()}`;
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3500);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
   // Theme state
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return safeLoadLocalStorage<'dark' | 'light'>('freebieverse_theme', 'dark', (val) => val === 'dark' || val === 'light');
@@ -37,7 +54,7 @@ export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
-  // Modal State: Store ONLY ID to eliminate stale modal snapshot bugs!
+  // Modal State: Store ONLY ID to eliminate stale modal snapshot bugs
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
@@ -64,7 +81,11 @@ export const App: React.FC = () => {
   }, [bookmarkedIds]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      trackEvent('theme_toggled', { theme: next });
+      return next;
+    });
   };
 
   const handleUpvote = (id: string) => {
@@ -175,7 +196,10 @@ export const App: React.FC = () => {
       {/* Sticky Header */}
       <Header
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={(q) => {
+          setSearchQuery(q);
+          if (q.trim().length > 2) trackEvent('search_query', { query: q });
+        }}
         theme={theme}
         toggleTheme={toggleTheme}
         onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
@@ -186,7 +210,10 @@ export const App: React.FC = () => {
 
       {/* Hero Section */}
       <HeroSection
-        onSelectTag={(tag) => setSearchQuery(tag)}
+        onSelectTag={(tag) => {
+          setSearchQuery(tag);
+          trackEvent('hero_tag_clicked', { tag });
+        }}
         totalDeals={deals.length}
         totalClaimsCount={totalClaimsCount}
         verifiedCount={verifiedCount}
@@ -200,6 +227,7 @@ export const App: React.FC = () => {
           onSelectCategory={(catId) => {
             setSelectedCategory(catId);
             setShowSavedOnly(false);
+            trackEvent('category_selected', { category: catId });
           }}
           categoryCounts={categoryCounts}
         />
@@ -220,6 +248,7 @@ export const App: React.FC = () => {
                 setSearchQuery('');
                 setSelectedCategory('all');
                 setShowSavedOnly(false);
+                addToast('Filters reset', 'info');
               }}
               style={{
                 display: 'flex',
@@ -249,6 +278,7 @@ export const App: React.FC = () => {
                 onToggleBookmark={handleToggleBookmark}
                 isBookmarked={bookmarkedIds.includes(deal.id)}
                 onClaim={handleClaim}
+                addToast={addToast}
               />
             ))}
           </div>
@@ -291,7 +321,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Deal Detail Modal (Always derived from live selectedDealId) */}
+      {/* Deal Detail Modal */}
       <DealModal
         deal={selectedDeal}
         onClose={() => setSelectedDealId(null)}
@@ -301,6 +331,7 @@ export const App: React.FC = () => {
         isBookmarked={selectedDeal ? bookmarkedIds.includes(selectedDeal.id) : false}
         onClaim={handleClaim}
         onReportExpired={handleReportExpired}
+        addToast={addToast}
       />
 
       {/* Submit Deal Modal */}
@@ -308,7 +339,11 @@ export const App: React.FC = () => {
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
         onSubmit={handleSubmitNewDeal}
+        addToast={addToast}
       />
+
+      {/* Floating Toast Notification Container */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       {/* Footer */}
       <Footer
