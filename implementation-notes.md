@@ -6,40 +6,28 @@
 - Tech Stack: Vite 6, React 19, TypeScript 5.7, Lucide Icons, Vanilla CSS Glassmorphism
 - Status: Published to GitHub (`latestwizard/Freebies`). Dev server active on `http://localhost:3000/`.
 
-## Key Features Implemented
-1. **Header & Navigation Bar**:
-   - Brand logo with gradient icon
-   - FTC affiliate disclosure banner toggle
-   - Live search input with instant clear button
-   - Bookmarked deals filter toggle
-   - Light/Dark theme toggle (persisted in LocalStorage)
-   - "Submit Referral" CTA button
-2. **Hero Section**:
-   - Headline and value stats ($15,400+ Total Value Saved, Verified Active Freebies, Community Claims)
-   - Interactive popular tag chips
-3. **Category Navigation**:
-   - Filter tabs for All Freebies, Tech & SaaS, Finance & Perks, Free Samples, Food & Dining, and Entertainment
-   - Dynamic count pills per category
-4. **Deal Card Component**:
-   - Provider logo avatar, verification badge, value badge
-   - Referral URL claim button (opens target site in new tab & increments claim count)
-   - Upvote button with persisted state
-   - Bookmark button with persisted state
-   - Direct promo code copy button with clipboard feedback
-   - "Steps" modal trigger
-5. **Step-by-Step Deal Modal**:
-   - Detailed offer overview
-   - Step-by-Step instructions (1, 2, 3...)
-   - Promo code copy button & referral URL copy button
-   - Expired link report trigger
-   - FTC disclosure footnote
-6. **Submit Deal Modal**:
-   - Form for users/creators to submit new referral links
-   - Fields: Title, Provider, Category, Value Badge, Promo Code, Referral Link URL, Short Summary, Steps
-   - Saves to LocalStorage so custom submissions persist across sessions
+## Key Features & Audit Remediation Implemented
+1. **Security & Input Sanitization**:
+   - Created [security.ts](file:///Users/ryan/Freebies/src/utils/security.ts) with `sanitizeText` (strips HTML tags & script injections).
+   - Created `isValidUrl` protocol validator (strictly enforces `http:` or `https:` scheme to block `javascript:` or `data:` URL injections).
+   - Sanitized user inputs in `SubmitDealModal` before state/LocalStorage saving.
+2. **Accessibility (WCAG 2.1 AA Compliance)**:
+   - Added `:focus-visible` ring outlines in [index.css](file:///Users/ryan/Freebies/src/index.css) for keyboard navigation.
+   - Updated text secondary contrast colors (`#CBD5E1` dark mode / `#334155` light mode) to achieve ≥ 4.5:1 WCAG contrast ratio.
+   - Added ARIA tablist/tab roles and `aria-selected` to `CategoryFilter`.
+   - Added `aria-label` to buttons and modal close triggers.
+   - Added `Escape` key event listener to close `DealModal` and `SubmitDealModal` via keyboard.
+3. **Performance & Code Quality**:
+   - Wrapped `DealCard` export in `React.memo` to optimize render performance.
+   - Fixed `.hide-mobile` media query rule in CSS.
+   - Created `useClipboard` hook ([useClipboard.ts](file:///Users/ryan/Freebies/src/hooks/useClipboard.ts)) for DRY clipboard handling.
+   - Created `ErrorBoundary` ([ErrorBoundary.tsx](file:///Users/ryan/Freebies/src/components/ErrorBoundary.tsx)) wrapping `<App />` in `main.tsx`.
+   - Fixed `catId: any` type in `Footer.tsx` to `catId: CategoryId`.
+4. **SEO & Social Metadata**:
+   - Added OpenGraph (`og:title`, `og:description`, `og:image`, `og:type`) and Twitter Card tags to [index.html](file:///Users/ryan/Freebies/index.html).
+   - Added Schema.org `ItemList` JSON-LD structured data.
 
-## Discovered Edge Cases Handled
-- **FTC Affiliate Compliance**: Added visible FTC disclosure banners on both the top header and inside every offer modal.
-- **Strict TypeScript Lints**: Fixed unused imports and replaced invalid style keys with typed `justifyContent`.
-- **Theme Persistence**: Theme preference (`dark` / `light`) is saved to `localStorage` and synchronized with `data-theme` attribute on the HTML root element.
-- **Git & GitHub Integration**: Configured `.gitignore` excluding `node_modules` and `dist/`, pushed `main` branch to GitHub (`latestwizard/Freebies`).
+## Verification & Repomix
+- `npm run build` verified cleanly with zero errors.
+- `npx repomix` executed, updating `repomix-output.xml` (25,041 tokens across 21 files).
+- Pushed to `main` branch on GitHub (`latestwizard/Freebies`).
