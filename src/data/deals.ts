@@ -4,12 +4,68 @@ export const CATEGORIES: Category[] = [
   { id: 'all', name: 'All Freebies', icon: 'Sparkles', description: 'Browse all verified freebies and perks' },
   { id: 'tech', name: 'Tech & SaaS', icon: 'Code', description: 'Free cloud credits, dev tools, and AI subscriptions' },
   { id: 'finance', name: 'Finance & Perks', icon: 'Coins', description: 'Cashback signups, bonus stocks, and referral rewards' },
-  { id: 'samples', name: 'Free Samples', icon: 'Gift', description: 'Physical sample boxes, grooming, and household items' },
+  { id: 'samples', name: 'Free Samples & Rebates', icon: 'Gift', description: 'Physical sample boxes, 100% cashback rebates, and mail-in freebies' },
   { id: 'food', name: 'Food & Dining', icon: 'Utensils', description: 'Free birthday meals, delivery credits, and coffee perks' },
   { id: 'entertainment', name: 'Entertainment', icon: 'Tv', description: 'Free streaming trials, gaming passes, and audiobooks' }
 ];
 
 export const INITIAL_DEALS: Deal[] = [
+  {
+    id: 'bic-soleil-glide-rebate',
+    title: '100% Free BIC Soleil Razor Rebate',
+    provider: 'BIC Razor Rewards',
+    logoText: 'BIC',
+    logoBg: 'linear-gradient(135deg, #FF6F00, #E65100)',
+    category: 'samples',
+    shortDesc: 'Claim a 100% purchase price rebate via PayPal or Venmo on any BIC Soleil Escape or Glide disposable razor pack (up to $9.99 value).',
+    fullDesc: 'BIC is running an official 100% mail-in / digital rebate program. Purchase any eligible BIC Soleil razor pack at retailer stores (Walmart, Target, CVS, Walgreens) and upload your receipt to receive 100% cashback up to $9.99 directly to your Venmo or PayPal account.',
+    valueText: '100% Free (Up to $10)',
+    referralUrl: 'https://bicsoleilglide.com/',
+    upvotes: 485,
+    claimsCount: 3120,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-09',
+    badge: 'HOT',
+    featured: true,
+    steps: [
+      'Click "Claim Freebie" to open the official BIC Soleil Glide rebate portal (bicsoleilglide.com).',
+      'Purchase any qualifying BIC Soleil Glide or Soleil Escape disposable razor pack at your local retailer.',
+      'Take a clear picture of your store receipt showing the purchase date and item.',
+      'Upload your receipt image on bicsoleilglide.com and enter your Venmo or PayPal email.',
+      'Receive 100% cash back up to $9.99 directly into your Venmo/PayPal account within 48 hours!'
+    ],
+    terms: 'Limit 1 rebate submission per household. Max rebate value $9.99. Purchase must be made at an authorized US retailer.'
+  },
+  {
+    id: 'aisle-grocery-rebates',
+    title: '100% Free Organic Drinks & Snacks (Venmo)',
+    provider: 'Aisle Rebates',
+    logoText: 'AISLE',
+    logoBg: 'linear-gradient(135deg, #10B981, #047857)',
+    category: 'samples',
+    shortDesc: 'Get 100% Venmo cashback on top organic beverage, energy drink, and snack brands by texting a photo of your receipt.',
+    fullDesc: 'Aisle pairs with leading consumer brand names to offer 100% free full-size product samples at grocery stores (Whole Foods, Sprouts, Target). Buy the item, text a photo of your receipt, and get paid 100% back via Venmo or PayPal in 24 hours.',
+    valueText: '100% Venmo Cashback',
+    referralUrl: 'https://gotoaisle.com/',
+    upvotes: 390,
+    claimsCount: 2410,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-08',
+    badge: 'VERIFIED',
+    featured: true,
+    steps: [
+      'Click "Claim Freebie" to browse active 100% free product rebate offers on Aisle.',
+      'Enter your phone number to activate a free item offer.',
+      'Purchase the full-size item at your local grocery store.',
+      'Text a picture of your store receipt to the offer number.',
+      'Get 100% reimbursed directly to your Venmo or PayPal account within 24 hours!'
+    ],
+    terms: 'Valid at participating US retailers. 1 redemption per phone number per brand offer.'
+  },
   {
     id: 'rakuten-cashback-30',
     title: '$30 Cash Signup & Shopping Bonus',
