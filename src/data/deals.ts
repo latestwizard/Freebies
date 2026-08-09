@@ -206,16 +206,15 @@ export const INITIAL_DEALS: Deal[] = [
   },
   {
     id: 'sofi-checking-bonus',
-    title: '$300 Direct Deposit Cash Bonus',
+    title: 'Up to $475 Cash Signup Bonus',
     provider: 'SoFi Banking',
     logoText: 'SoFi',
     logoBg: 'linear-gradient(135deg, #00A3A6, #005F63)',
     category: 'finance',
-    shortDesc: 'Get up to $300 in cash when you open a SoFi Checking & Savings account and set up direct deposit.',
-    fullDesc: 'SoFi offers 4.60% APY on savings with no account fees. Sign up via our referral link to claim a $25 instant signup bonus + up to $300 cash when you receive direct deposits within 25 days.',
-    valueText: '$325 Total Cash',
-    referralUrl: 'https://www.sofi.com/invite/money?gcp=freebies_referral',
-    promoCode: 'SOFI325',
+    shortDesc: 'Get up to $475 in cash bonuses ($50 signup + $25 SoFi Plus + up to $400 direct deposit bonus) when you open a free SoFi account.',
+    fullDesc: 'SoFi offers high-yield APY on savings with zero account fees. Sign up via our referral link to claim $50 cash on account opening + $25 bonus with SoFi Plus, plus up to $400 when you set up direct deposit of $5,000+.',
+    valueText: 'Up to $475 Cash Bonus',
+    referralUrl: 'https://www.sofi.com/invite/money?gcp=712f0361-5b3e-4069-bab2-44847086faca&isAliasGcp=false',
     upvotes: 412,
     claimsCount: 2310,
     verifiedDate: 'Today',
@@ -224,12 +223,12 @@ export const INITIAL_DEALS: Deal[] = [
     createdAt: '2026-08-02',
     badge: 'HOT',
     steps: [
-      'Click "Claim Freebie" to open SoFi Bank via referral.',
+      'Click "Claim Freebie" to open SoFi Bank via our verified referral link.',
       'Complete account application for SoFi Checking & Savings in under 5 minutes.',
-      'Fund your account with $50+ to instantly receive your initial $25 signup cash bonus.',
-      'Set up direct deposit of $1,000+ within 25 days to trigger the additional $300 bonus.'
+      'Earn $50 instantly on opening + $25 with SoFi Plus activation.',
+      'Set up eligible direct deposit of $5,000+ within 25 days to earn up to $400 additional cash bonus!'
     ],
-    terms: 'Member FDIC. Direct deposit bonus tier based on total deposit amount ($1,000 - $4,999 gets $50; $5,000+ gets $300). Referral reward supported.'
+    terms: 'Member FDIC. $50 opening bonus + $25 SoFi Plus bonus + direct deposit bonus up to $400 ($1,000-$4,999 gets $50; $5,000+ gets $400).'
   },
   {
     id: 'pinch-me-sample-box',
