@@ -11,6 +11,34 @@ export const CATEGORIES: Category[] = [
 
 export const INITIAL_DEALS: Deal[] = [
   {
+    id: 'rakuten-cashback-30',
+    title: '$30 Cash Signup & Shopping Bonus',
+    provider: 'Rakuten',
+    logoText: 'R',
+    logoBg: 'linear-gradient(135deg, #BF0800, #7A0500)',
+    category: 'finance',
+    shortDesc: 'Get an instant $30 cash bonus when you shop online at over 3,500 stores like Target, Nike, Walmart, and Macy\'s.',
+    fullDesc: 'Rakuten (formerly Ebates) pays you real cash back for online shopping. Sign up with referral link DINGHY30, spend $30 at any partner store within 90 days, and receive a $30 cash check or PayPal deposit.',
+    valueText: '$30 Cash Bonus',
+    referralUrl: 'https://www.rakuten.com/r/DINGHY30',
+    promoCode: 'DINGHY30',
+    upvotes: 520,
+    claimsCount: 3840,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-01',
+    badge: 'HOT',
+    featured: true,
+    steps: [
+      'Click "Claim Freebie" to open Rakuten with verified code DINGHY30.',
+      'Create your free account using your email or Google login.',
+      'Shop at any of Rakuten\'s 3,500+ partner stores and make purchases totaling $30 or more within 90 days.',
+      'Receive your $30 cash bonus via PayPal or Big Fat Check!'
+    ],
+    terms: 'New Rakuten members only. Must place qualifying order of $30+ within 90 days of membership.'
+  },
+  {
     id: 'digitalocean-credits',
     title: '$200 Cloud Hosting Credits',
     provider: 'DigitalOcean',
@@ -39,6 +67,61 @@ export const INITIAL_DEALS: Deal[] = [
     terms: 'Valid for new DigitalOcean accounts only. $200 credit expires 60 days after activation. We may earn account credits if you convert to a paid user.'
   },
   {
+    id: 'hellofresh-free-box',
+    title: '16 Free Meals + Free Shipping',
+    provider: 'HelloFresh',
+    logoText: 'HF',
+    logoBg: 'linear-gradient(135deg, #99CC00, #558800)',
+    category: 'food',
+    shortDesc: 'Get 16 free meal kits across your first 6 boxes plus free shipping on your first delivery.',
+    fullDesc: 'HelloFresh delivers fresh, pre-portioned ingredients and chef-curated recipes directly to your doorstep. Claim 16 free meals and enjoy zero prep stress.',
+    valueText: '16 Free Meals',
+    referralUrl: 'https://www.hellofresh.com/pages/share?c=FIH-FREEBIEVERSE',
+    promoCode: 'FIH-FREEBIEVERSE',
+    upvotes: 410,
+    claimsCount: 2950,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-02',
+    badge: 'FEATURED',
+    featured: true,
+    steps: [
+      'Click "Claim Freebie" to open HelloFresh with discount applied.',
+      'Choose your meal preferences (Meat & Veggies, Veggie, Family Friendly, Calorie Smart).',
+      'Select your first week\'s recipes.',
+      'Your 100% free first box will ship directly to your home address.'
+    ],
+    terms: 'Valid for new HelloFresh subscribers. Discount distributed across first 6 meal boxes.'
+  },
+  {
+    id: 'spotify-premium-3mo',
+    title: '3 Months Free Spotify Premium',
+    provider: 'Spotify',
+    logoText: 'SPOT',
+    logoBg: 'linear-gradient(135deg, #1DB954, #128037)',
+    category: 'entertainment',
+    shortDesc: 'Listen to ad-free music, offline playback, and unlimited skips free for 90 days.',
+    fullDesc: 'Upgrade your listening experience with Spotify Premium. Stream over 100 million songs and 5 million podcast titles without annoying ad interruptions.',
+    valueText: '3 Months Free',
+    referralUrl: 'https://www.spotify.com/us/premium/',
+    upvotes: 610,
+    claimsCount: 5200,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-02',
+    badge: 'HOT',
+    featured: true,
+    steps: [
+      'Click referral link to navigate to Spotify Premium trial page.',
+      'Sign in or create a free Spotify account.',
+      'Select Spotify Premium Individual tier.',
+      'Enjoy 3 full months free. Cancel anytime before 90 days to avoid billing.'
+    ],
+    terms: 'Individual plan only. $11.99/month after trial. Open to users who have not previously tried Premium.'
+  },
+  {
     id: 'notion-plus-ai',
     title: 'Notion Plus & AI Credits',
     provider: 'Notion',
@@ -55,8 +138,7 @@ export const INITIAL_DEALS: Deal[] = [
     status: 'verified',
     verifiedAt: '2026-08-08',
     createdAt: '2026-08-01',
-    badge: 'FEATURED',
-    featured: true,
+    badge: 'VERIFIED',
     steps: [
       'Navigate to Notion using the referral link.',
       'Sign up using an eligible startup email domain (.edu or registered startup domain).',
@@ -84,7 +166,6 @@ export const INITIAL_DEALS: Deal[] = [
     verifiedAt: '2026-08-09',
     createdAt: '2026-08-02',
     badge: 'HOT',
-    featured: true,
     steps: [
       'Click "Claim Freebie" to open SoFi Bank via referral.',
       'Complete account application for SoFi Checking & Savings in under 5 minutes.',
@@ -118,6 +199,32 @@ export const INITIAL_DEALS: Deal[] = [
       'Boxes ship to your address completely free!'
     ],
     terms: 'US residents only. Limit 1 box per household per sample drop window.'
+  },
+  {
+    id: 'wise-fee-free-transfer',
+    title: 'Fee-Free Transfer Up to $600',
+    provider: 'Wise',
+    logoText: 'WISE',
+    logoBg: 'linear-gradient(135deg, #257850, #144930)',
+    category: 'finance',
+    shortDesc: 'Send money internationally with zero transfer fees on your first transaction up to $600.',
+    fullDesc: 'Wise (formerly TransferWise) gives you the real mid-market exchange rate with no hidden bank markup fees. Claim a fee-free transfer on your first international transfer.',
+    valueText: '$600 Fee-Free',
+    referralUrl: 'https://wise.com/invite/ih/freebieverse',
+    upvotes: 230,
+    claimsCount: 1280,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-03',
+    badge: 'VERIFIED',
+    steps: [
+      'Click referral link to open Wise registration.',
+      'Create your account with email or Google ID.',
+      'Set up your first international currency transfer up to $600.',
+      'Zero transfer fee is automatically applied at checkout.'
+    ],
+    terms: 'Valid on first transfer up to $600 USD or equivalent in other currency.'
   },
   {
     id: 'doordash-free-dashpass',
