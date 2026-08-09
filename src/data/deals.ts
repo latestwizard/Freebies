@@ -231,6 +231,34 @@ export const INITIAL_DEALS: Deal[] = [
     terms: 'Member FDIC. $50 opening bonus + $25 SoFi Plus bonus + direct deposit bonus up to $400 ($1,000-$4,999 gets $50; $5,000+ gets $400).'
   },
   {
+    id: 'coinbase-crypto-bonus',
+    title: '$10 Free Bitcoin + Wheel Spin Bonus',
+    provider: 'Coinbase',
+    logoText: 'CB',
+    logoBg: 'linear-gradient(135deg, #0052FF, #0037A6)',
+    category: 'finance',
+    shortDesc: 'Get $10 in free Bitcoin when you buy or sell $100 of crypto on Coinbase + spin the wheel for up to $200 bonus.',
+    fullDesc: 'Coinbase is the leading regulated crypto platform in the US. Sign up using referral code 6UFD9GQ, trade $100 in crypto within 180 days of opening your account, and receive $10 in free Bitcoin instantly added to your portfolio.',
+    valueText: '$10 Free Bitcoin',
+    referralUrl: 'https://coinbase.com/join/6UFD9GQ?src=referral-link',
+    promoCode: '6UFD9GQ',
+    upvotes: 385,
+    claimsCount: 2420,
+    verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-09',
+    badge: 'HOT',
+    featured: true,
+    steps: [
+      'Click "Claim Freebie" to open Coinbase with referral code 6UFD9GQ.',
+      'Complete quick account signup and identity verification.',
+      'Buy or sell $100+ of any cryptocurrency (Bitcoin, Ethereum, USDC).',
+      'Receive $10 in free Bitcoin automatically deposited into your wallet!'
+    ],
+    terms: 'Valid for new Coinbase users worldwide. Must complete $100 trade within 180 days.'
+  },
+  {
     id: 'pinch-me-sample-box',
     title: 'Free PinchMe Beauty & Snack Box',
     provider: 'PinchMe',
