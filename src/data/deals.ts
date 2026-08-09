@@ -1,4 +1,5 @@
 import { Category, Deal } from '../types';
+import redditDeals from './redditDeals.json';
 
 export const CATEGORIES: Category[] = [
   { id: 'all', name: 'All Freebies', icon: 'Sparkles', description: 'Browse all verified freebies and perks' },
@@ -385,5 +386,6 @@ export const INITIAL_DEALS: Deal[] = [
       'Pick your free stock from a list of top US tech companies.'
     ],
     terms: 'Reward value randomly assigned: 99% of rewards are between $5 and $10. Must hold stock for 3 trading days before selling.'
-  }
+  },
+  ...(redditDeals as Deal[])
 ];
