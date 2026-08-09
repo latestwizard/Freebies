@@ -3,15 +3,13 @@
  */
 
 /**
- * Sanitizes raw string input by stripping HTML tags and dangerous scripts.
+ * Sanitizes user input string by stripping HTML tags and trimming whitespace.
+ * Preserves quotes and apostrophes because React JSX automatically escapes text nodes natively.
  */
 export const sanitizeText = (str: string): string => {
   if (!str) return '';
   return str
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
+    .replace(/<[^>]*>?/gm, '') // Strip HTML tags
     .trim();
 };
 

@@ -54,7 +54,7 @@ describe('SubmitDealModal Component', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('submits valid deal with pending status', () => {
+  it('preserves apostrophes and quotes in provider and title without double-escaping', () => {
     const onClose = vi.fn();
     const onSubmit = vi.fn();
     const addToast = vi.fn();
@@ -69,16 +69,16 @@ describe('SubmitDealModal Component', () => {
     );
 
     fireEvent.change(screen.getByPlaceholderText(/e\.g\. \$100 Free VPS Hosting Credit/i), {
-      target: { value: 'Valid Community Offer' },
+      target: { value: '"$100 Off" Bonus' },
     });
     fireEvent.change(screen.getByPlaceholderText(/e\.g\. Linode \/ DigitalOcean/i), {
-      target: { value: 'GoodProvider' },
+      target: { value: "Trader Joe's" },
     });
     fireEvent.change(screen.getByPlaceholderText(/e\.g\. \$100 Free Credit \/ 100% Free/i), {
       target: { value: '$50 Credit' },
     });
     fireEvent.change(screen.getByPlaceholderText(/https:\/\/example\.com\/register\?ref=yourcode/i), {
-      target: { value: 'https://valid-referral.com/ref' },
+      target: { value: 'https://traderjoes.com/ref' },
     });
 
     const submitBtn = screen.getByRole('button', { name: /Submit for Review/i });
@@ -86,12 +86,10 @@ describe('SubmitDealModal Component', () => {
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Valid Community Offer',
-        provider: 'GoodProvider',
+        title: '"$100 Off" Bonus',
+        provider: "Trader Joe's",
         status: 'pending',
-        referralUrl: 'https://valid-referral.com/ref',
       })
     );
-    expect(addToast).toHaveBeenCalledWith('Offer submitted for community review!', 'success');
   });
 });

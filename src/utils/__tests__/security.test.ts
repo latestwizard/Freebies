@@ -3,17 +3,19 @@ import { sanitizeText, isValidUrl } from '../security';
 
 describe('Security Utility', () => {
   describe('sanitizeText', () => {
-    it('should strip script tags and escape HTML entities', () => {
+    it('should strip script tags and HTML elements', () => {
       const input = '<script>alert("xss")</script>';
       const clean = sanitizeText(input);
       expect(clean).not.toContain('<script>');
-      expect(clean).toContain('&lt;script&gt;');
+      expect(clean).toBe('alert("xss")');
     });
 
-    it('should sanitize nested brackets and quotes', () => {
-      const input = 'Hello "World" <img src=x onerror=alert(1)>';
+    it('should preserve quotes and apostrophes for natural React JSX rendering', () => {
+      const input = `Trader Joe's "$100" Bonus`;
       const clean = sanitizeText(input);
-      expect(clean).toBe('Hello &quot;World&quot; &lt;img src=x onerror=alert(1)&gt;');
+      expect(clean).toBe(`Trader Joe's "$100" Bonus`);
+      expect(clean).not.toContain('&#x27;');
+      expect(clean).not.toContain('&quot;');
     });
 
     it('should return empty string for empty input', () => {
