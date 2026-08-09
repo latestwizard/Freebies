@@ -2,6 +2,8 @@ import React from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
 import { trackEvent } from '../utils/analytics';
+import { checkRateLimit } from '../utils/rateLimit';
+import { isDealStale } from '../utils/expiration';
 import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye, Clock, AlertTriangle, Share2 } from 'lucide-react';
 
 interface DealCardProps {
@@ -26,6 +28,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   addToast,
 }) => {
   const { copied: copiedCode, copy: copyCode } = useClipboard();
+  const isStale = isDealStale(deal, 45);
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,6 +41,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
   const handleClaimClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Anti-Spam Rate Limiting Check
+    if (!checkRateLimit(`claim_${deal.id}`, 3, 5000)) {
+      addToast('Please wait a moment before claiming again.', 'warning');
+      return;
+    }
+
     onClaim(deal.id);
     trackEvent('deal_claimed', { dealId: deal.id, provider: deal.provider, title: deal.title });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
@@ -66,6 +76,9 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     }
     if (status === 'expired') {
       return { bg: 'rgba(239, 68, 68, 0.15)', text: 'var(--danger-color)', border: '1px solid rgba(239, 68, 68, 0.3)' };
+    }
+    if (isStale) {
+      return { bg: 'rgba(245, 158, 11, 0.12)', text: '#D97706', border: '1px solid rgba(245, 158, 11, 0.25)' };
     }
 
     switch (badge) {
@@ -124,12 +137,19 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             <div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                 <span>{deal.provider}</span>
-                {deal.status === 'verified' && <CheckCircle2 size={13} style={{ color: 'var(--success-color)' }} />}
+                {deal.status === 'verified' && !isStale && <CheckCircle2 size={13} style={{ color: 'var(--success-color)' }} />}
                 {deal.status === 'pending' && <Clock size={13} style={{ color: 'var(--warning-color)' }} />}
                 {deal.status === 'expired' && <AlertTriangle size={13} style={{ color: 'var(--danger-color)' }} />}
+                {isStale && deal.status === 'verified' && <Clock size={13} style={{ color: 'var(--warning-color)' }} />}
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {deal.status === 'pending' ? 'Pending Review' : deal.status === 'expired' ? 'Expired' : `Verified ${deal.verifiedDate}`}
+                {deal.status === 'pending'
+                  ? 'Pending Review'
+                  : deal.status === 'expired'
+                  ? 'Expired'
+                  : isStale
+                  ? 'Needs Re-verification'
+                  : `Verified ${deal.verifiedDate}`}
               </div>
             </div>
           </div>
@@ -146,7 +166,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 border: badgeStyle.border || 'none'
               }}
             >
-              {deal.status === 'pending' ? 'PENDING' : deal.status === 'expired' ? 'EXPIRED' : deal.badge || 'VERIFIED'}
+              {deal.status === 'pending'
+                ? 'PENDING'
+                : deal.status === 'expired'
+                ? 'EXPIRED'
+                : isStale
+                ? 'AGING'
+                : deal.badge || 'VERIFIED'}
             </span>
 
             <button

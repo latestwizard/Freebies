@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
 import { trackEvent } from '../utils/analytics';
+import { isDealStale } from '../utils/expiration';
 import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2, Clock, Share2 } from 'lucide-react';
 
 interface DealModalProps {
@@ -50,6 +51,8 @@ export const DealModal: React.FC<DealModalProps> = ({
   }, [deal, onClose]);
 
   if (!deal) return null;
+
+  const isStale = isDealStale(deal, 45);
 
   const handleCopyLink = () => {
     copyLink(deal.referralUrl);
@@ -173,9 +176,10 @@ export const DealModal: React.FC<DealModalProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <span>{deal.provider}</span>
-              {deal.status === 'verified' ? (
+              {deal.status === 'verified' && !isStale && (
                 <CheckCircle2 size={14} style={{ color: 'var(--success-color)' }} />
-              ) : (
+              )}
+              {(deal.status === 'pending' || isStale) && (
                 <Clock size={14} style={{ color: 'var(--warning-color)' }} />
               )}
             </div>
@@ -185,11 +189,18 @@ export const DealModal: React.FC<DealModalProps> = ({
           </div>
         </div>
 
-        {/* Status Notification Banner */}
+        {/* Status Notification Banners */}
         {deal.status === 'pending' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning-color)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
             <Clock size={14} />
             <span><strong>Community Submission:</strong> Pending staff verification review.</span>
+          </div>
+        )}
+
+        {isStale && deal.status === 'verified' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning-color)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
+            <Clock size={14} />
+            <span><strong>Aging Offer:</strong> Verified over 45 days ago. Requirements may have updated.</span>
           </div>
         )}
 
