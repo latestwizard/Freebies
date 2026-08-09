@@ -314,7 +314,7 @@ export const INITIAL_DEALS: Deal[] = [
     shortDesc: 'Claim a free fractional share of top companies like Apple, Tesla, or Amazon when you open an account.',
     fullDesc: 'Start investing commission-free. Sign up via our referral link and link your bank account to receive a guaranteed free stock share worth up to $200.',
     valueText: 'Up to $200 Stock',
-    referralUrl: 'https://join.robinhood.com/freebie_rh',
+    referralUrl: 'https://join.robinhood.com/christt382',
     upvotes: 380,
     claimsCount: 2800,
     verifiedDate: '2 days ago',
