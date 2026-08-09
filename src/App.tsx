@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { CategoryId, Deal } from './types';
 import { INITIAL_DEALS, CATEGORIES } from './data/deals';
+import { safeLoadLocalStorage, safeSetLocalStorage } from './utils/storage';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { CategoryFilter } from './components/CategoryFilter';
@@ -13,32 +14,22 @@ import { RefreshCw, AlertCircle } from 'lucide-react';
 export const App: React.FC = () => {
   // Theme state
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('freebieverse_theme') as 'dark' | 'light') || 'dark';
+    return safeLoadLocalStorage<'dark' | 'light'>('freebieverse_theme', 'dark', (val) => val === 'dark' || val === 'light');
   });
 
-  // Deals state (combines static INITIAL_DEALS with user-submitted deals in LocalStorage)
+  // Deals state (combines INITIAL_DEALS with user-submitted deals stored safely in LocalStorage)
   const [deals, setDeals] = useState<Deal[]>(() => {
-    const savedDeals = localStorage.getItem('freebieverse_custom_deals');
-    if (savedDeals) {
-      try {
-        const parsed = JSON.parse(savedDeals);
-        return [...parsed, ...INITIAL_DEALS];
-      } catch (e) {
-        console.error('Failed to parse saved deals', e);
-      }
-    }
-    return INITIAL_DEALS;
+    const customDeals = safeLoadLocalStorage<Deal[]>('freebieverse_custom_deals', [], Array.isArray);
+    return [...customDeals, ...INITIAL_DEALS];
   });
 
-  // Upvoted & Bookmarked states
+  // Upvoted & Bookmarked states (safely loaded)
   const [upvotedIds, setUpvotedIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('freebieverse_upvotes');
-    return saved ? JSON.parse(saved) : [];
+    return safeLoadLocalStorage<string[]>('freebieverse_upvotes', [], Array.isArray);
   });
 
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('freebieverse_bookmarks');
-    return saved ? JSON.parse(saved) : [];
+    return safeLoadLocalStorage<string[]>('freebieverse_bookmarks', [], Array.isArray);
   });
 
   // Filters
@@ -46,24 +37,30 @@ export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
-  // Modals
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  // Modal State: Store ONLY ID to eliminate stale modal snapshot bugs!
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+
+  // Live derived selected deal (always in sync with deals state)
+  const selectedDeal = useMemo(() => {
+    if (!selectedDealId) return null;
+    return deals.find(d => d.id === selectedDealId) ?? null;
+  }, [deals, selectedDealId]);
 
   // Sync Theme to HTML Root
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('freebieverse_theme', theme);
+    safeSetLocalStorage('freebieverse_theme', theme);
   }, [theme]);
 
-  // Persist Upvotes
+  // Persist Upvotes safely
   useEffect(() => {
-    localStorage.setItem('freebieverse_upvotes', JSON.stringify(upvotedIds));
+    safeSetLocalStorage('freebieverse_upvotes', upvotedIds);
   }, [upvotedIds]);
 
-  // Persist Bookmarks
+  // Persist Bookmarks safely
   useEffect(() => {
-    localStorage.setItem('freebieverse_bookmarks', JSON.stringify(bookmarkedIds));
+    safeSetLocalStorage('freebieverse_bookmarks', bookmarkedIds);
   }, [bookmarkedIds]);
 
   const toggleTheme = () => {
@@ -74,7 +71,7 @@ export const App: React.FC = () => {
     if (upvotedIds.includes(id)) {
       setUpvotedIds(prev => prev.filter(i => i !== id));
       setDeals(prev =>
-        prev.map(d => (d.id === id ? { ...d, upvotes: d.upvotes - 1 } : d))
+        prev.map(d => (d.id === id ? { ...d, upvotes: Math.max(0, d.upvotes - 1) } : d))
       );
     } else {
       setUpvotedIds(prev => [...prev, id]);
@@ -96,10 +93,16 @@ export const App: React.FC = () => {
     );
   };
 
+  const handleReportExpired = (id: string) => {
+    setDeals(prev =>
+      prev.map(d => (d.id === id ? { ...d, status: 'expired' } : d))
+    );
+  };
+
   const handleSubmitNewDeal = (newDeal: Deal) => {
-    const customDeals = JSON.parse(localStorage.getItem('freebieverse_custom_deals') || '[]');
+    const customDeals = safeLoadLocalStorage<Deal[]>('freebieverse_custom_deals', [], Array.isArray);
     const updatedCustom = [newDeal, ...customDeals];
-    localStorage.setItem('freebieverse_custom_deals', JSON.stringify(updatedCustom));
+    safeSetLocalStorage('freebieverse_custom_deals', updatedCustom);
     setDeals(prev => [newDeal, ...prev]);
   };
 
@@ -121,6 +124,17 @@ export const App: React.FC = () => {
     });
 
     return counts;
+  }, [deals]);
+
+  // Overall statistics derived dynamically
+  const { totalClaimsCount, verifiedCount } = useMemo(() => {
+    let claimsSum = 0;
+    let vCount = 0;
+    deals.forEach(d => {
+      claimsSum += d.claimsCount;
+      if (d.status === 'verified') vCount++;
+    });
+    return { totalClaimsCount: claimsSum, verifiedCount: vCount };
   }, [deals]);
 
   // Filtered Deals
@@ -174,6 +188,8 @@ export const App: React.FC = () => {
       <HeroSection
         onSelectTag={(tag) => setSearchQuery(tag)}
         totalDeals={deals.length}
+        totalClaimsCount={totalClaimsCount}
+        verifiedCount={verifiedCount}
       />
 
       {/* Main Content Area */}
@@ -194,7 +210,7 @@ export const App: React.FC = () => {
             {showSavedOnly
               ? `Saved Offers (${filteredDeals.length})`
               : selectedCategory === 'all'
-              ? 'All Verified Offers'
+              ? 'All Offers Catalog'
               : CATEGORIES.find(c => c.id === selectedCategory)?.name}
           </h2>
 
@@ -227,7 +243,7 @@ export const App: React.FC = () => {
               <DealCard
                 key={deal.id}
                 deal={deal}
-                onSelectDeal={(d) => setSelectedDeal(d)}
+                onSelectDeal={(d) => setSelectedDealId(d.id)}
                 onUpvote={handleUpvote}
                 isUpvoted={upvotedIds.includes(deal.id)}
                 onToggleBookmark={handleToggleBookmark}
@@ -252,7 +268,7 @@ export const App: React.FC = () => {
             <AlertCircle size={44} style={{ color: 'var(--accent-primary)', marginBottom: '1rem' }} />
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.5rem' }}>No offers matched your query</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              Try adjusting your search terms or clearing category filters to explore more verified freebies.
+              Try adjusting your search terms or clearing category filters to explore more freebies.
             </p>
             <button
               onClick={() => {
@@ -275,15 +291,16 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Deal Detail Modal */}
+      {/* Deal Detail Modal (Always derived from live selectedDealId) */}
       <DealModal
         deal={selectedDeal}
-        onClose={() => setSelectedDeal(null)}
+        onClose={() => setSelectedDealId(null)}
         onUpvote={handleUpvote}
         isUpvoted={selectedDeal ? upvotedIds.includes(selectedDeal.id) : false}
         onToggleBookmark={handleToggleBookmark}
         isBookmarked={selectedDeal ? bookmarkedIds.includes(selectedDeal.id) : false}
         onClaim={handleClaim}
+        onReportExpired={handleReportExpired}
       />
 
       {/* Submit Deal Modal */}

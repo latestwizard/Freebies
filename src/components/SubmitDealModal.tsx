@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CategoryId, Deal } from '../types';
 import { CATEGORIES } from '../data/deals';
 import { sanitizeText, isValidUrl } from '../utils/security';
-import { X, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Sparkles, AlertCircle, Clock } from 'lucide-react';
 
 interface SubmitDealModalProps {
   isOpen: boolean;
@@ -25,15 +25,22 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
   const [stepsInput, setStepsInput] = useState('');
   const [urlError, setUrlError] = useState('');
 
-  // Keyboard 'Escape' Key Handler
+  // Lock background scroll when modal is active & listen to Escape key
   useEffect(() => {
+    if (!isOpen) return;
+
+    document.body.style.overflow = 'hidden';
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -63,6 +70,7 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
       ? cleanStepsInput.split('\n').filter((s) => s.trim().length > 0)
       : ['Click referral link to sign up.', 'Complete eligible sign up requirements to unlock bonus.'];
 
+    // Submissions initialize as 'pending' status — NEVER auto-assigned 'verified'
     const newDeal: Deal = {
       id: `user-submitted-${Date.now()}`,
       title: cleanTitle,
@@ -70,17 +78,19 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
       logoText: initials,
       logoBg: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
       category,
-      shortDesc: cleanShortDesc || 'Community submitted verified freebie offer.',
+      shortDesc: cleanShortDesc || 'Community submitted offer pending staff verification.',
       fullDesc: cleanShortDesc || 'Community submitted offer. Make sure to follow referral requirements.',
       valueText: cleanValueText,
       referralUrl,
       promoCode: cleanPromoCode || undefined,
       upvotes: 1,
       claimsCount: 1,
-      verifiedDate: 'Just now',
-      badge: 'VERIFIED',
+      verifiedDate: 'Pending Review',
+      status: 'pending',
+      createdAt: new Date().toISOString().split('T')[0],
+      badge: undefined, // Badges are reserved for verified deals
       steps: stepsArray,
-      terms: 'Community submitted offer. Always review terms on the target website.'
+      terms: 'Community submitted referral. Verification pending.'
     };
 
     onSubmit(newDeal);
@@ -152,14 +162,20 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
           <X size={18} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
             <Sparkles size={20} />
           </div>
           <div>
             <h2 id="submit-deal-title" style={{ fontSize: '1.3rem', fontWeight: 800 }}>Submit a Referral Freebie</h2>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Share your referral link with thousands of daily visitors</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Community submissions undergo review before receiving verified badges</p>
           </div>
+        </div>
+
+        {/* Notice Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning-color)', fontSize: '0.78rem', marginBottom: '1.25rem' }}>
+          <Clock size={14} style={{ flexShrink: 0 }} />
+          <span>Offers are listed as <strong>Community (Pending Review)</strong> until verified by our moderators.</span>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -300,7 +316,7 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
               boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)'
             }}
           >
-            Publish Verified Freebie
+            Submit for Review
           </button>
         </form>
       </div>

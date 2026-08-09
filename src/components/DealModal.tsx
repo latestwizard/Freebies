@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
-import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
 
 interface DealModalProps {
   deal: Deal | null;
@@ -11,6 +11,7 @@ interface DealModalProps {
   onToggleBookmark: (id: string) => void;
   isBookmarked: boolean;
   onClaim: (id: string) => void;
+  onReportExpired: (id: string) => void;
 }
 
 export const DealModal: React.FC<DealModalProps> = ({
@@ -21,20 +22,28 @@ export const DealModal: React.FC<DealModalProps> = ({
   onToggleBookmark,
   isBookmarked,
   onClaim,
+  onReportExpired,
 }) => {
   const { copied: copiedLink, copy: copyLink } = useClipboard();
   const { copied: copiedCode, copy: copyCode } = useClipboard();
-  const [reported, setReported] = useState(false);
+  const [reportedMessage, setReportedMessage] = useState(false);
 
-  // Keyboard 'Escape' Key Listener
+  // Lock background scroll when modal is active & listen to Escape key
   useEffect(() => {
+    if (!deal) return;
+
+    document.body.style.overflow = 'hidden';
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && deal) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [deal, onClose]);
 
   if (!deal) return null;
@@ -54,9 +63,10 @@ export const DealModal: React.FC<DealModalProps> = ({
     window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleReportExpired = () => {
-    setReported(true);
-    setTimeout(() => setReported(false), 3000);
+  const handleReport = () => {
+    onReportExpired(deal.id);
+    setReportedMessage(true);
+    setTimeout(() => setReportedMessage(false), 4000);
   };
 
   return (
@@ -140,13 +150,32 @@ export const DealModal: React.FC<DealModalProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <span>{deal.provider}</span>
-              <CheckCircle2 size={14} style={{ color: 'var(--success-color)' }} />
+              {deal.status === 'verified' ? (
+                <CheckCircle2 size={14} style={{ color: 'var(--success-color)' }} />
+              ) : (
+                <Clock size={14} style={{ color: 'var(--warning-color)' }} />
+              )}
             </div>
             <h2 id="deal-modal-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {deal.title}
             </h2>
           </div>
         </div>
+
+        {/* Status Notification Banner */}
+        {deal.status === 'pending' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning-color)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
+            <Clock size={14} />
+            <span><strong>Community Submission:</strong> Pending staff verification review.</span>
+          </div>
+        )}
+
+        {deal.status === 'expired' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--danger-color)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
+            <AlertTriangle size={14} />
+            <span><strong>Flagged as Expired:</strong> Users reported this offer may no longer be valid.</span>
+          </div>
+        )}
 
         {/* Value Text Banner */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '1.5rem' }}>
@@ -291,7 +320,7 @@ export const DealModal: React.FC<DealModalProps> = ({
               boxShadow: '0 4px 18px rgba(139, 92, 246, 0.4)'
             }}
           >
-            <span>Open Verified Referral & Claim Now</span>
+            <span>Open Referral Link & Claim Now</span>
             <ExternalLink size={18} />
           </button>
 
@@ -339,18 +368,18 @@ export const DealModal: React.FC<DealModalProps> = ({
             </div>
 
             <button
-              onClick={handleReportExpired}
+              onClick={handleReport}
               aria-label="Report offer as expired"
               style={{
                 fontSize: '0.78rem',
-                color: reported ? 'var(--warning-color)' : 'var(--text-muted)',
+                color: deal.status === 'expired' || reportedMessage ? 'var(--warning-color)' : 'var(--text-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.3rem'
               }}
             >
               <AlertTriangle size={14} />
-              <span>{reported ? 'Flagged as Expired' : 'Report Expired'}</span>
+              <span>{deal.status === 'expired' || reportedMessage ? 'Marked as Expired' : 'Report Expired'}</span>
             </button>
           </div>
         </div>

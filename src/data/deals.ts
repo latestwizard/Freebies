@@ -25,6 +25,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 342,
     claimsCount: 1890,
     verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-01',
     badge: 'HOT',
     featured: true,
     steps: [
@@ -49,6 +52,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 289,
     claimsCount: 1450,
     verifiedDate: 'Yesterday',
+    status: 'verified',
+    verifiedAt: '2026-08-08',
+    createdAt: '2026-08-01',
     badge: 'FEATURED',
     featured: true,
     steps: [
@@ -74,6 +80,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 412,
     claimsCount: 2310,
     verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-02',
     badge: 'HOT',
     featured: true,
     steps: [
@@ -98,6 +107,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 198,
     claimsCount: 940,
     verifiedDate: '3 days ago',
+    status: 'verified',
+    verifiedAt: '2026-08-06',
+    createdAt: '2026-08-03',
     badge: 'VERIFIED',
     steps: [
       'Sign up for a free PinchMe account.',
@@ -122,6 +134,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 310,
     claimsCount: 3100,
     verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-03',
     badge: 'LIMITED',
     steps: [
       'Click the referral link to download DoorDash or log into your account.',
@@ -144,6 +159,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 275,
     claimsCount: 1620,
     verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-04',
     badge: 'VERIFIED',
     steps: [
       'Click the referral link to land on the Amazon Audible signup page.',
@@ -167,6 +185,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 450,
     claimsCount: 4200,
     verifiedDate: 'Today',
+    status: 'verified',
+    verifiedAt: '2026-08-09',
+    createdAt: '2026-08-05',
     badge: 'EXCLUSIVITY',
     steps: [
       'Click "Claim Freebie" to open Vercel.',
@@ -190,6 +211,9 @@ export const INITIAL_DEALS: Deal[] = [
     upvotes: 380,
     claimsCount: 2800,
     verifiedDate: '2 days ago',
+    status: 'verified',
+    verifiedAt: '2026-08-07',
+    createdAt: '2026-08-05',
     badge: 'HOT',
     steps: [
       'Click referral link to download Robinhood app.',

@@ -1,13 +1,17 @@
 export type CategoryId = 'all' | 'tech' | 'finance' | 'samples' | 'food' | 'entertainment';
 
+export type CategoryIcon = 'Sparkles' | 'Code' | 'Coins' | 'Gift' | 'Utensils' | 'Tv';
+
 export interface Category {
   id: CategoryId;
   name: string;
-  icon: string;
+  icon: CategoryIcon;
   description: string;
 }
 
 export type DealBadge = 'HOT' | 'VERIFIED' | 'LIMITED' | 'FEATURED' | 'EXCLUSIVITY';
+
+export type DealStatus = 'pending' | 'verified' | 'expired' | 'rejected';
 
 export interface Deal {
   id: string;
@@ -24,6 +28,9 @@ export interface Deal {
   upvotes: number;
   claimsCount: number;
   verifiedDate: string;
+  status: DealStatus;
+  verifiedAt?: string;
+  createdAt: string;
   badge?: DealBadge;
   steps: string[];
   terms: string;

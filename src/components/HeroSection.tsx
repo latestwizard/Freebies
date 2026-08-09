@@ -4,9 +4,16 @@ import { Flame, Gift, DollarSign, Award } from 'lucide-react';
 interface HeroSectionProps {
   onSelectTag: (tag: string) => void;
   totalDeals: number;
+  totalClaimsCount: number;
+  verifiedCount: number;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeals }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({
+  onSelectTag,
+  totalDeals,
+  totalClaimsCount,
+  verifiedCount,
+}) => {
   const popularTags = ['Cloud Credits', 'Free Samples', '$300 Cash Bonus', 'Audiobooks', 'Vercel', 'Notion AI'];
 
   return (
@@ -29,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
           }}
         >
           <Flame size={15} style={{ color: '#EC4899' }} />
-          <span>Curated & Tested Daily for Maximum Savings</span>
+          <span>Curated Freebies & Community Submissions</span>
         </div>
 
         {/* Hero Title */}
@@ -40,7 +47,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
 
         {/* Subtitle */}
         <p style={{ maxWidth: '680px', margin: '0 auto 2.25rem auto', color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: 1.6 }}>
-          Unlock thousands of dollars in free software hosting credits, cash bonuses, sample boxes, and free streaming trials. Every offer is 100% verified.
+          Unlock thousands of dollars in free software hosting credits, cash bonuses, sample boxes, and free streaming trials.
         </p>
 
         {/* Stat Badges */}
@@ -50,8 +57,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
               <DollarSign size={20} />
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>$15,400+</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Available Perks Value</div>
+              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{verifiedCount} Verified</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Staff Audited Offers</div>
             </div>
           </div>
 
@@ -60,8 +67,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
               <Gift size={20} />
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{totalDeals}+ Verified</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Active Freebies</div>
+              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{totalDeals} Offers</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Active in Catalog</div>
             </div>
           </div>
 
@@ -70,8 +77,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
               <Award size={20} />
             </div>
             <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>18,900+</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Community Claims</div>
+              <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{totalClaimsCount.toLocaleString()}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Total Outbound Claims</div>
             </div>
           </div>
         </div>
@@ -83,6 +90,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTag, totalDeal
             <button
               key={tag}
               onClick={() => onSelectTag(tag)}
+              aria-label={`Search tag ${tag}`}
               style={{
                 padding: '0.35rem 0.85rem',
                 borderRadius: 'var(--radius-full)',

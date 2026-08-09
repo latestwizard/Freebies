@@ -1,7 +1,7 @@
 import React from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
-import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye } from 'lucide-react';
+import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye, Clock, AlertTriangle } from 'lucide-react';
 
 interface DealCardProps {
   deal: Deal;
@@ -37,7 +37,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const getBadgeStyle = (badge?: string) => {
+  const getBadgeStyle = (badge?: string, status?: string) => {
+    if (status === 'pending') {
+      return { bg: 'rgba(245, 158, 11, 0.15)', text: 'var(--warning-color)', border: '1px solid rgba(245, 158, 11, 0.3)' };
+    }
+    if (status === 'expired') {
+      return { bg: 'rgba(239, 68, 68, 0.15)', text: 'var(--danger-color)', border: '1px solid rgba(239, 68, 68, 0.3)' };
+    }
+
     switch (badge) {
       case 'HOT':
         return { bg: 'linear-gradient(135deg, #EF4444, #F59E0B)', text: '#fff' };
@@ -52,7 +59,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     }
   };
 
-  const badgeStyle = getBadgeStyle(deal.badge);
+  const badgeStyle = getBadgeStyle(deal.badge, deal.status);
 
   return (
     <div
@@ -64,7 +71,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         padding: '1.5rem',
         position: 'relative',
         transition: 'all var(--transition-normal)',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        opacity: deal.status === 'expired' ? 0.75 : 1
       }}
       onClick={() => onSelectDeal(deal)}
     >
@@ -93,28 +101,31 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             <div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                 <span>{deal.provider}</span>
-                <CheckCircle2 size={13} style={{ color: 'var(--success-color)' }} />
+                {deal.status === 'verified' && <CheckCircle2 size={13} style={{ color: 'var(--success-color)' }} />}
+                {deal.status === 'pending' && <Clock size={13} style={{ color: 'var(--warning-color)' }} />}
+                {deal.status === 'expired' && <AlertTriangle size={13} style={{ color: 'var(--danger-color)' }} />}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Verified {deal.verifiedDate}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {deal.status === 'pending' ? 'Pending Review' : deal.status === 'expired' ? 'Expired' : `Verified ${deal.verifiedDate}`}
+              </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {deal.badge && (
-              <span
-                style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  padding: '0.25rem 0.6rem',
-                  borderRadius: 'var(--radius-full)',
-                  background: badgeStyle.bg,
-                  color: badgeStyle.text,
-                  border: badgeStyle.border || 'none'
-                }}
-              >
-                {deal.badge}
-              </span>
-            )}
+            <span
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '0.25rem 0.6rem',
+                borderRadius: 'var(--radius-full)',
+                background: badgeStyle.bg,
+                color: badgeStyle.text,
+                border: badgeStyle.border || 'none'
+              }}
+            >
+              {deal.status === 'pending' ? 'PENDING' : deal.status === 'expired' ? 'EXPIRED' : deal.badge || 'VERIFIED'}
+            </span>
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
