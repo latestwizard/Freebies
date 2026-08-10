@@ -150,7 +150,7 @@ export const App: React.FC = () => {
     let vCount = 0;
     deals.forEach(d => {
       claimsSum += d.claimsCount || 0;
-      if (d.status === 'verified') vCount++;
+      if (d.verificationStatus === 'staff-verified') vCount++;
     });
     return { totalClaimsCount: claimsSum, verifiedCount: vCount };
   }, [deals]);

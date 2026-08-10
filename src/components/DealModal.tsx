@@ -3,6 +3,7 @@ import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
 import { trackEvent } from '../utils/analytics';
 import { isDealStale } from '../utils/expiration';
+import { getClaimUrl, getShareUrl } from '../utils/dealUrls';
 import { X, ExternalLink, ThumbsUp, Bookmark, Copy, Check, AlertTriangle, ShieldCheck, CheckCircle2, Clock, Share2 } from 'lucide-react';
 
 interface DealModalProps {
@@ -55,7 +56,7 @@ export const DealModal: React.FC<DealModalProps> = ({
   const isStale = isDealStale(deal, 45);
 
   const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/go/${deal.id}`;
+    const shareUrl = getShareUrl(deal);
     copyLink(shareUrl);
     addToast('Shortlink copied to clipboard!', 'success');
   };
@@ -75,7 +76,7 @@ export const DealModal: React.FC<DealModalProps> = ({
     onClaim(deal.id);
     trackEvent('deal_claimed_modal', { dealId: deal.id, provider: deal.provider });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
-    const redirectUrl = `/go/${deal.id}`;
+    const redirectUrl = getClaimUrl(deal);
     window.open(redirectUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -89,15 +90,16 @@ export const DealModal: React.FC<DealModalProps> = ({
 
   const handleShare = () => {
     trackEvent('deal_shared_modal', { dealId: deal.id });
+    const shareUrl = getShareUrl(deal);
     if (navigator.share) {
       navigator.share({
         title: deal.title,
         text: `Claim ${deal.title} on FreebieVerse!`,
-        url: deal.referralUrl,
+        url: shareUrl,
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(deal.referralUrl);
-      addToast('Referral link copied to clipboard!', 'success');
+      navigator.clipboard.writeText(shareUrl);
+      addToast('Share link copied to clipboard!', 'success');
     }
   };
 
@@ -195,11 +197,18 @@ export const DealModal: React.FC<DealModalProps> = ({
           </div>
         </div>
 
-        {/* Status Notification Banners */}
+        {/* Status & Provenance Notification Banners */}
         {deal.status === 'pending' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: 'var(--warning-color)', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
             <Clock size={14} />
             <span><strong>Community Submission:</strong> Pending staff verification review.</span>
+          </div>
+        )}
+
+        {deal.verificationStatus === 'source-listed' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-sm)', background: 'rgba(2, 132, 199, 0.12)', border: '1px solid rgba(2, 132, 199, 0.3)', color: '#0284C7', fontSize: '0.8rem', marginBottom: '1.25rem' }}>
+            <CheckCircle2 size={14} />
+            <span><strong>Source Feed Listing:</strong> Curated by {deal.provider}.</span>
           </div>
         )}
 

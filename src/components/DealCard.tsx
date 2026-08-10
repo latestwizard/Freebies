@@ -4,6 +4,7 @@ import { useClipboard } from '../hooks/useClipboard';
 import { trackEvent } from '../utils/analytics';
 import { checkRateLimit } from '../utils/rateLimit';
 import { isDealStale } from '../utils/expiration';
+import { getClaimUrl, getShareUrl } from '../utils/dealUrls';
 import { ExternalLink, ThumbsUp, Copy, Check, Bookmark, CheckCircle2, Eye, Clock, AlertTriangle, Share2 } from 'lucide-react';
 
 interface DealCardProps {
@@ -56,14 +57,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     onClaim(deal.id);
     trackEvent('deal_claimed', { dealId: deal.id, provider: deal.provider, title: deal.title });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
-    const redirectUrl = `/go/${deal.id}`;
+    const redirectUrl = getClaimUrl(deal);
     window.open(redirectUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     trackEvent('deal_shared', { dealId: deal.id, title: deal.title });
-    const shareUrl = `${window.location.origin}/go/${deal.id}`;
+    const shareUrl = getShareUrl(deal);
 
     if (navigator.share) {
       navigator.share({
@@ -158,7 +159,11 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                   ? 'Expired'
                   : isStale
                   ? 'Needs Re-verification'
-                  : `Verified ${deal.verifiedDate}`}
+                  : deal.verificationStatus === 'staff-verified'
+                  ? `Verified ${deal.verifiedDate || '2026'}`
+                  : deal.verificationStatus === 'source-listed'
+                  ? `Listed by ${deal.provider}`
+                  : 'Reported by Community'}
               </div>
             </div>
           </div>

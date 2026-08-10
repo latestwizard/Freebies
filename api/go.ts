@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { INITIAL_DEALS } from '../src/data/deals';
+import { Deal } from '../src/types';
+
+// Pre-index deals into a Map at module load scope for O(1) lookup
+const dealsMap = new Map<string, Deal>(INITIAL_DEALS.map(d => [d.id, d]));
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
@@ -8,7 +12,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing deal ID' });
   }
 
-  const deal = INITIAL_DEALS.find(d => d.id === id);
+  const deal = dealsMap.get(id);
 
   if (!deal) {
     return res.redirect(302, '/?error=deal_not_found');
