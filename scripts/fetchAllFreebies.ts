@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { Deal } from '../src/types';
+import { STATIC_DEALS } from '../src/data/staticDeals';
 
 /**
  * Unified Multi-Source Freebie Scraper (Parallelized TypeScript)
@@ -490,6 +491,21 @@ async function main(): Promise<void> {
     const outputPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
     fs.writeFileSync(outputPath, JSON.stringify(uniqueDeals, null, 2));
     console.log(`\n🎉 Saved ${uniqueDeals.length} unique 100% genuine freebie deals in ${durationSec}s to ${outputPath}`);
+
+    // Sync self-contained serverless redirect dictionary
+    const mapPath = path.resolve(process.cwd(), 'api/dealsMap.js');
+    const map: Record<string, string> = {};
+    for (const d of [...STATIC_DEALS, ...uniqueDeals]) {
+      if (d.id && d.referralUrl) map[d.id] = d.referralUrl;
+    }
+    const mapContent = `/**
+ * Self-contained redirect map for Vercel Serverless Function (api/go.js)
+ * Maps deal IDs directly to target referral URLs with O(1) lookup.
+ * Automatically synced by scripts/fetchAllFreebies.ts.
+ */
+export const DEALS_MAP = ${JSON.stringify(map, null, 2)};\n`;
+    fs.writeFileSync(mapPath, mapContent);
+    console.log(`⚡ Synced ${Object.keys(map).length} deal redirects to ${mapPath}`);
   } else {
     console.error('\n❌ All sources failed and no cache available! Skipping aggregatedDeals.json overwrite.');
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import handler from '../go';
+import handler from '../go.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 describe('Vercel Serverless Function: api/go', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import handler from '../health';
+import handler from '../health.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 describe('Vercel Serverless Function: api/health', () => {
