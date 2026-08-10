@@ -1,10 +1,10 @@
-import { DEALS_MAP } from './dealsMap.js';
+import { DEALS_MAP } from './go.js';
 
 const startTime = Date.now();
 
 export default function handler(_req, res) {
   try {
-    const totalCount = Object.keys(DEALS_MAP).length;
+    const totalCount = DEALS_MAP && typeof DEALS_MAP === 'object' ? Object.keys(DEALS_MAP).length : 0;
     const responsePayload = {
       status: totalCount >= 5 ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),

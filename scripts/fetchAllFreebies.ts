@@ -492,20 +492,55 @@ async function main(): Promise<void> {
     fs.writeFileSync(outputPath, JSON.stringify(uniqueDeals, null, 2));
     console.log(`\n🎉 Saved ${uniqueDeals.length} unique 100% genuine freebie deals in ${durationSec}s to ${outputPath}`);
 
-    // Sync self-contained serverless redirect dictionary
-    const mapPath = path.resolve(process.cwd(), 'api/dealsMap.js');
+    // Sync self-contained serverless redirect handler directly
+    const goJsPath = path.resolve(process.cwd(), 'api/go.js');
     const map: Record<string, string> = {};
     for (const d of [...STATIC_DEALS, ...uniqueDeals]) {
       if (d.id && d.referralUrl) map[d.id] = d.referralUrl;
     }
-    const mapContent = `/**
+    const goJsContent = `/**
  * Self-contained redirect map for Vercel Serverless Function (api/go.js)
  * Maps deal IDs directly to target referral URLs with O(1) lookup.
  * Automatically synced by scripts/fetchAllFreebies.ts.
  */
-export const DEALS_MAP = ${JSON.stringify(map, null, 2)};\n`;
-    fs.writeFileSync(mapPath, mapContent);
-    console.log(`⚡ Synced ${Object.keys(map).length} deal redirects to ${mapPath}`);
+export const DEALS_MAP = ${JSON.stringify(map, null, 2)};
+
+/**
+ * Vercel Serverless Redirect Handler (/go/:id -> /api/go?id=:id)
+ * Zero external module dependencies, zero filesystem operations.
+ */
+export default function handler(req, res) {
+  try {
+    const id = req.query?.id;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Missing deal ID' });
+    }
+
+    const referralUrl = DEALS_MAP[id];
+
+    if (!referralUrl) {
+      console.warn(\`[Vercel Serverless Redirect] Deal not found for ID: "\${id}"\`);
+      return res.redirect(302, '/?error=deal_not_found');
+    }
+
+    // Set no-cache header to ensure click events & redirects are fresh
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+    // Log serverless redirect execution
+    console.log(\`[Vercel Serverless Redirect] Deal ID "\${id}" -> \${referralUrl}\`);
+
+    // HTTP 302 Redirect directly to target referral URL
+    return res.redirect(302, referralUrl);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[Vercel Serverless Exception in api/go]:', msg);
+    return res.redirect(302, '/?error=server_error');
+  }
+}
+`;
+    fs.writeFileSync(goJsPath, goJsContent);
+    console.log(`⚡ Synced ${Object.keys(map).length} deal redirects directly into ${goJsPath}`);
   } else {
     console.error('\n❌ All sources failed and no cache available! Skipping aggregatedDeals.json overwrite.');
   }
