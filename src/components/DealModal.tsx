@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Deal } from '../types';
 import { useClipboard } from '../hooks/useClipboard';
 import { trackEvent } from '../utils/analytics';
@@ -33,7 +33,9 @@ export const DealModal: React.FC<DealModalProps> = ({
   const { copied: copiedCode, copy: copyCode } = useClipboard();
   const [reportedMessage, setReportedMessage] = useState(false);
 
-  // Lock background scroll when modal is active & listen to Escape key
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Lock background scroll when modal is active, focus modal on open, & implement focus trap + Escape listener
   useEffect(() => {
     if (!deal) return;
 
@@ -41,9 +43,36 @@ export const DealModal: React.FC<DealModalProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusables = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+
+        const firstEl = focusables[0];
+        const lastEl = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
+        } else if (!e.shiftKey && document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
+
+    setTimeout(() => {
+      if (modalRef.current) {
+        const closeBtn = modalRef.current.querySelector<HTMLElement>('button');
+        closeBtn?.focus();
+      }
+    }, 50);
 
     return () => {
       document.body.style.overflow = 'unset';
@@ -126,6 +155,7 @@ export const DealModal: React.FC<DealModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={modalRef}
         className="glass-panel"
         style={{
           width: '100%',

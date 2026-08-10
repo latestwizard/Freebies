@@ -18,6 +18,12 @@ describe('Security Utility', () => {
       expect(clean).not.toContain('&quot;');
     });
 
+    it('should preserve comparison operators in text like Spend > $50 and < $100', () => {
+      const input = 'Spend > $50 and < $100';
+      const clean = sanitizeText(input);
+      expect(clean).toBe('Spend > $50 and < $100');
+    });
+
     it('should return empty string for empty input', () => {
       expect(sanitizeText('')).toBe('');
     });
