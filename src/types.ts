@@ -17,26 +17,35 @@ export type ProvenanceSource = 'official' | 'reddit' | 'doc' | 'fsf' | 'communit
 
 export type VerificationStatus = 'staff-verified' | 'source-listed' | 'community-reported';
 
-export interface Deal {
-  id: string; // Deterministic hash ID based on canonical URL or source GUID
-  title: string;
+export interface DealSourceInfo {
+  source: ProvenanceSource;
+  sourceUrl?: string;
   provider: string;
   logoText: string;
   logoBg: string;
+}
+
+export interface DealVerificationInfo {
+  status: DealStatus;
+  verificationStatus: VerificationStatus;
+  verifiedDate?: string;
+  verifiedAt?: string;
+}
+
+export interface DealMetricsInfo {
+  upvotes?: number;
+  claimsCount?: number;
+}
+
+export interface Deal extends DealSourceInfo, DealVerificationInfo, DealMetricsInfo {
+  id: string; // Deterministic hash ID based on canonical URL or source GUID
+  title: string;
   category: CategoryId;
   shortDesc: string;
   fullDesc: string;
   valueText: string;
   referralUrl: string;
   promoCode?: string;
-  upvotes?: number;
-  claimsCount?: number;
-  verifiedDate?: string;
-  status: DealStatus;
-  verificationStatus: VerificationStatus;
-  source: ProvenanceSource;
-  sourceUrl?: string;
-  verifiedAt?: string;
   createdAt: string;
   badge?: DealBadge;
   steps: string[];

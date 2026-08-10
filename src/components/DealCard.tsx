@@ -42,6 +42,11 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   const handleClaimClick = (e: React.MouseEvent) => {
     e.stopPropagation();
 
+    if (deal.status === 'expired') {
+      addToast('This offer has expired and can no longer be claimed.', 'warning');
+      return;
+    }
+
     // Anti-Spam Rate Limiting Check
     if (!checkRateLimit(`claim_${deal.id}`, 3, 5000)) {
       addToast('Please wait a moment before claiming again.', 'warning');
@@ -335,12 +340,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
           <button
             onClick={handleClaimClick}
-            aria-label={`Claim freebie for ${deal.title}`}
+            disabled={deal.status === 'expired'}
+            aria-label={deal.status === 'expired' ? 'Offer expired' : `Claim freebie for ${deal.title}`}
             style={{
               flex: 2,
               padding: '0.65rem',
               borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
+              background: deal.status === 'expired' ? 'var(--text-muted)' : 'var(--accent-gradient)',
               color: '#ffffff',
               fontWeight: 700,
               fontSize: '0.88rem',
@@ -348,10 +354,12 @@ const DealCardComponent: React.FC<DealCardProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.4rem',
-              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)'
+              opacity: deal.status === 'expired' ? 0.6 : 1,
+              cursor: deal.status === 'expired' ? 'not-allowed' : 'pointer',
+              boxShadow: deal.status === 'expired' ? 'none' : '0 4px 14px rgba(139, 92, 246, 0.3)'
             }}
           >
-            <span>Claim Freebie</span>
+            <span>{deal.status === 'expired' ? 'Expired' : 'Claim Freebie'}</span>
             <ExternalLink size={15} />
           </button>
         </div>

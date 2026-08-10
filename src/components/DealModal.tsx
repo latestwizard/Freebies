@@ -68,6 +68,10 @@ export const DealModal: React.FC<DealModalProps> = ({
   };
 
   const handleClaim = () => {
+    if (deal.status === 'expired') {
+      addToast('This offer has expired and can no longer be claimed.', 'warning');
+      return;
+    }
     onClaim(deal.id);
     trackEvent('deal_claimed_modal', { dealId: deal.id, provider: deal.provider });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
@@ -343,11 +347,13 @@ export const DealModal: React.FC<DealModalProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <button
             onClick={handleClaim}
+            disabled={deal.status === 'expired'}
+            aria-label={deal.status === 'expired' ? 'Offer expired' : `Claim offer ${deal.title}`}
             style={{
               width: '100%',
               padding: '0.9rem',
               borderRadius: 'var(--radius-md)',
-              background: 'var(--accent-gradient)',
+              background: deal.status === 'expired' ? 'var(--text-muted)' : 'var(--accent-gradient)',
               color: '#ffffff',
               fontWeight: 800,
               fontSize: '1rem',
@@ -355,10 +361,12 @@ export const DealModal: React.FC<DealModalProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              boxShadow: '0 4px 18px rgba(139, 92, 246, 0.4)'
+              opacity: deal.status === 'expired' ? 0.6 : 1,
+              cursor: deal.status === 'expired' ? 'not-allowed' : 'pointer',
+              boxShadow: deal.status === 'expired' ? 'none' : '0 4px 18px rgba(139, 92, 246, 0.4)'
             }}
           >
-            <span>Open Referral Link & Claim Now</span>
+            <span>{deal.status === 'expired' ? 'Offer Expired' : 'Open Referral Link & Claim Now'}</span>
             <ExternalLink size={18} />
           </button>
 

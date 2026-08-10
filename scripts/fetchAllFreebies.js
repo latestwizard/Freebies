@@ -1,16 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { XMLParser } from 'fast-xml-parser';
 
 /**
- * Unified Multi-Source Freebie Scraper with Integrity Safeguards
+ * Unified Multi-Source Freebie Scraper with Integrity Safeguards & fast-xml-parser
  * 
  * Features:
- * 1. Deterministic Stable IDs: Uses SHA-256 hash of canonical URLs so IDs remain permanent across daily runs.
- * 2. Real Provenance & Verification: Distinguishes 'source-listed' and 'community-reported' from 'staff-verified'.
- * 3. Non-Destructive Caching: Retains last-known-good source cache if a feed suffers a transient outage.
- * 4. Robust Entity Decoding: Decodes numeric and named HTML entities (&amp;, &#038;, &#8217;, etc.).
- * 5. Webhook Alerts: Notifies Discord/Slack on feed anomalies.
+ * 1. Fast XML Parser: Uses fast-xml-parser to handle XML nodes, attributes, CDATA, and namespaces cleanly.
+ * 2. Deterministic Stable IDs: Uses SHA-256 hash of canonical URLs so IDs remain permanent across daily runs.
+ * 3. Real Provenance & Verification: Distinguishes 'source-listed' and 'community-reported' from 'staff-verified'.
+ * 4. Non-Destructive Caching: Retains last-known-good source cache if a feed suffers a transient outage.
+ * 5. Robust Entity Decoding: Decodes numeric and named HTML entities (&amp;, &#038;, &#8217;, etc.).
+ * 6. Webhook Alerts: Notifies Discord/Slack on feed anomalies.
  */
 
 // Ensure cache directory exists
@@ -19,14 +21,23 @@ if (!fs.existsSync(sourcesDir)) {
   fs.mkdirSync(sourcesDir, { recursive: true });
 }
 
-function generateStableId(prefix, url) {
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  cdataPropName: '__cdata',
+  trimValues: true,
+});
+
+export function generateStableId(prefix, url) {
+  if (!url) return `${prefix}-${Date.now()}`;
   const hash = crypto.createHash('sha256').update(url.trim()).digest('hex').substring(0, 12);
   return `${prefix}-${hash}`;
 }
 
-function decodeEntities(str) {
+export function decodeEntities(str) {
   if (!str) return '';
-  return str
+  let text = typeof str === 'object' && str.__cdata ? str.__cdata : String(str);
+  return text
     .replace(/&amp;/g, '&')
     .replace(/&#038;/g, '&')
     .replace(/&lt;/g, '<')
@@ -87,10 +98,10 @@ async function sendWebhookAlert(errors) {
   }
 }
 
-// 1. Fetch Reddit r/freebies RSS
-async function fetchReddit(errors) {
+// 1. Fetch Reddit r/freebies Atom Feed
+export async function fetchReddit(errors) {
   const cachePath = path.join(sourcesDir, 'reddit.json');
-  console.log('🤖 [1/3] Fetching Reddit r/freebies...');
+  console.log('🤖 [1/3] Parsing Reddit r/freebies Atom XML feed...');
 
   try {
     const res = await fetch('https://old.reddit.com/r/freebies/.rss', {
@@ -98,25 +109,32 @@ async function fetchReddit(errors) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
-    const xml = await res.text();
-    const entries = xml.split('<entry>').slice(1);
+    const xmlText = await res.text();
+    const parsedObj = xmlParser.parse(xmlText);
+
+    const entries = parsedObj?.feed?.entry
+      ? (Array.isArray(parsedObj.feed.entry) ? parsedObj.feed.entry : [parsedObj.feed.entry])
+      : [];
+
     const deals = [];
 
     for (const entry of entries) {
       if (deals.length >= 6) break;
-      const titleMatch = entry.match(/<title>(.*?)<\/title>/);
-      const linkMatch = entry.match(/<link href="(.*?)"/);
-      const updatedMatch = entry.match(/<updated>(.*?)<\/updated>/);
 
-      if (!titleMatch || !linkMatch) continue;
+      const rawTitle = decodeEntities(entry.title);
+      let link = '';
+      if (typeof entry.link === 'string') {
+        link = entry.link;
+      } else if (entry.link && entry.link['@_href']) {
+        link = entry.link['@_href'];
+      }
 
-      const rawTitle = decodeEntities(titleMatch[1]);
-      const link = linkMatch[1];
-      const updated = updatedMatch ? updatedMatch[1] : new Date().toISOString();
+      const updated = entry.updated ? String(entry.updated) : new Date().toISOString();
 
+      if (!rawTitle || !link) continue;
       if (rawTitle.toLowerCase().includes('welcome') || rawTitle.toLowerCase().includes('expired')) continue;
-      const cleanTitle = rawTitle.replace(/^\[.*?\]\s*/, '').trim();
 
+      const cleanTitle = rawTitle.replace(/^\[.*?\]\s*/, '').trim();
       const stableId = generateStableId('reddit', link);
 
       deals.push({
@@ -146,7 +164,7 @@ async function fetchReddit(errors) {
       });
     }
 
-    if (deals.length === 0) throw new Error('Parsed 0 valid deals from feed.');
+    if (deals.length === 0) throw new Error('Parsed 0 valid deals from Reddit Atom feed.');
 
     fs.writeFileSync(cachePath, JSON.stringify(deals, null, 2));
     return deals;
@@ -167,10 +185,10 @@ async function fetchReddit(errors) {
   }
 }
 
-// 2. Fetch Doctor of Credit RSS
-async function fetchDoctorOfCredit(errors) {
+// 2. Fetch Doctor of Credit RSS 2.0 Feed
+export async function fetchDoctorOfCredit(errors) {
   const cachePath = path.join(sourcesDir, 'doc.json');
-  console.log('💳 [2/3] Fetching Doctor of Credit (Free Money & Bank Bonuses)...');
+  console.log('💳 [2/3] Parsing Doctor of Credit RSS 2.0 XML feed...');
 
   try {
     const res = await fetch('https://www.doctorofcredit.com/category/free-money/feed/', {
@@ -178,23 +196,24 @@ async function fetchDoctorOfCredit(errors) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
-    const xml = await res.text();
-    const items = xml.split('<item>').slice(1);
+    const xmlText = await res.text();
+    const parsedObj = xmlParser.parse(xmlText);
+
+    const items = parsedObj?.rss?.channel?.item
+      ? (Array.isArray(parsedObj.rss.channel.item) ? parsedObj.rss.channel.item : [parsedObj.rss.channel.item])
+      : [];
+
     const deals = [];
 
     for (const item of items) {
       if (deals.length >= 6) break;
-      const titleMatch = item.match(/<title>(.*?)<\/title>/);
-      const linkMatch = item.match(/<link>(.*?)<\/link>/);
-      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
 
-      if (!titleMatch || !linkMatch) continue;
+      const rawTitle = decodeEntities(item.title);
+      const link = typeof item.link === 'string' ? item.link : String(item.link || '');
+      const pubDate = item.pubDate ? String(item.pubDate) : new Date().toISOString();
 
-      const rawTitle = decodeEntities(titleMatch[1]);
-      const link = linkMatch[1];
-      const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString();
+      if (!rawTitle || !link) continue;
 
-      // Filter out non-deal informational Q&As or policies
       const lower = rawTitle.toLowerCase();
       if (lower.includes('expired') || lower.includes('do electronic wallets') || lower.includes('waiver')) continue;
 
@@ -227,7 +246,7 @@ async function fetchDoctorOfCredit(errors) {
       });
     }
 
-    if (deals.length === 0) throw new Error('Parsed 0 valid deals from feed.');
+    if (deals.length === 0) throw new Error('Parsed 0 valid deals from Doctor of Credit RSS feed.');
 
     fs.writeFileSync(cachePath, JSON.stringify(deals, null, 2));
     return deals;
@@ -248,10 +267,10 @@ async function fetchDoctorOfCredit(errors) {
   }
 }
 
-// 3. Fetch Free Stuff Finder RSS
-async function fetchFreeStuffFinder(errors) {
+// 3. Fetch Free Stuff Finder RSS 2.0 Feed
+export async function fetchFreeStuffFinder(errors) {
   const cachePath = path.join(sourcesDir, 'fsf.json');
-  console.log('🎁 [3/3] Fetching Free Stuff Finder...');
+  console.log('🎁 [3/3] Parsing Free Stuff Finder RSS 2.0 XML feed...');
 
   try {
     const res = await fetch('https://www.freestufffinder.com/feed/', {
@@ -259,25 +278,25 @@ async function fetchFreeStuffFinder(errors) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
 
-    const xml = await res.text();
-    const items = xml.split('<item>').slice(1);
+    const xmlText = await res.text();
+    const parsedObj = xmlParser.parse(xmlText);
+
+    const items = parsedObj?.rss?.channel?.item
+      ? (Array.isArray(parsedObj.rss.channel.item) ? parsedObj.rss.channel.item : [parsedObj.rss.channel.item])
+      : [];
+
     const deals = [];
 
     for (const item of items) {
       if (deals.length >= 6) break;
-      const titleMatch = item.match(/<title>(.*?)<\/title>/);
-      const linkMatch = item.match(/<link>(.*?)<\/link>/);
-      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
 
-      if (!titleMatch || !linkMatch) continue;
+      const rawTitle = decodeEntities(item.title);
+      const link = typeof item.link === 'string' ? item.link : String(item.link || '');
+      const pubDate = item.pubDate ? String(item.pubDate) : new Date().toISOString();
 
-      const rawTitle = decodeEntities(titleMatch[1]);
-      const link = linkMatch[1];
-      const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString();
-
+      if (!rawTitle || !link) continue;
       if (rawTitle.toLowerCase().includes('expired')) continue;
 
-      // Extract value text appropriately instead of forcing 100% Freebie on paid discounts
       let valueText = 'See Offer Details';
       if (rawTitle.toLowerCase().includes('free')) {
         valueText = '100% Freebie';
@@ -315,7 +334,7 @@ async function fetchFreeStuffFinder(errors) {
       });
     }
 
-    if (deals.length === 0) throw new Error('Parsed 0 valid deals from feed.');
+    if (deals.length === 0) throw new Error('Parsed 0 valid deals from Free Stuff Finder RSS feed.');
 
     fs.writeFileSync(cachePath, JSON.stringify(deals, null, 2));
     return deals;
@@ -337,7 +356,7 @@ async function fetchFreeStuffFinder(errors) {
 }
 
 async function main() {
-  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper...\n');
+  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper (fast-xml-parser)...\n');
 
   const errors = [];
   const redditDeals = await fetchReddit(errors);
@@ -360,4 +379,7 @@ async function main() {
   }
 }
 
-main();
+// Only execute main when run directly from command line
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
