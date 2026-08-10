@@ -1,5 +1,30 @@
 [
   {
+    "id": "reddit-14593767475e",
+    "title": "Free Dunkin Refresher",
+    "provider": "r/freebies Community",
+    "logoText": "RED",
+    "logoBg": "linear-gradient(135deg, #FF4500, #CC3700)",
+    "category": "samples",
+    "shortDesc": "Free Dunkin Refresher",
+    "fullDesc": "Free Dunkin Refresher. Community reported on Reddit r/freebies.",
+    "valueText": "100% Free Sample",
+    "referralUrl": "https://www.reddit.com/r/freebies/comments/1vkoyvs/free_dunkin_refresher/",
+    "sourceUrl": "https://www.reddit.com/r/freebies/comments/1vkoyvs/free_dunkin_refresher/",
+    "status": "verified",
+    "verificationStatus": "community-reported",
+    "source": "reddit",
+    "createdAt": "2026-08-10",
+    "badge": "REDDIT",
+    "featured": false,
+    "steps": [
+      "Click \"Claim Freebie\" to open the community discussion and direct sample link.",
+      "Follow the provider form instructions to request your sample.",
+      "Allow standard delivery time for physical items."
+    ],
+    "terms": "Community reported offer on Reddit r/freebies. Provider terms apply."
+  },
+  {
     "id": "reddit-6bc8a698331a",
     "title": "another free capital one cafe",
     "provider": "r/freebies Community",
@@ -115,31 +140,6 @@
     "verificationStatus": "community-reported",
     "source": "reddit",
     "createdAt": "2026-08-07",
-    "badge": "REDDIT",
-    "featured": false,
-    "steps": [
-      "Click \"Claim Freebie\" to open the community discussion and direct sample link.",
-      "Follow the provider form instructions to request your sample.",
-      "Allow standard delivery time for physical items."
-    ],
-    "terms": "Community reported offer on Reddit r/freebies. Provider terms apply."
-  },
-  {
-    "id": "reddit-6142387a905b",
-    "title": "Capital One Cafe Free coffee Expires 9/3",
-    "provider": "r/freebies Community",
-    "logoText": "RED",
-    "logoBg": "linear-gradient(135deg, #FF4500, #CC3700)",
-    "category": "samples",
-    "shortDesc": "Capital One Cafe Free coffee Expires 9/3",
-    "fullDesc": "Capital One Cafe Free coffee Expires 9/3. Community reported on Reddit r/freebies.",
-    "valueText": "100% Free Sample",
-    "referralUrl": "https://www.reddit.com/r/freebies/comments/1vh7kqs/capital_one_cafe_free_coffee_expires_93/",
-    "sourceUrl": "https://www.reddit.com/r/freebies/comments/1vh7kqs/capital_one_cafe_free_coffee_expires_93/",
-    "status": "verified",
-    "verificationStatus": "community-reported",
-    "source": "reddit",
-    "createdAt": "2026-08-06",
     "badge": "REDDIT",
     "featured": false,
     "steps": [

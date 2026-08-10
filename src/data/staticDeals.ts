@@ -2,7 +2,7 @@ import { Deal } from '../types';
 
 /**
  * Pure TypeScript static deals dataset (Zero external JSON imports)
- * Used by React frontend and Vercel serverless function (api/go.ts) safely.
+ * Used by React frontend and Vercel serverless function (api/go.js) safely.
  */
 export const STATIC_DEALS: Deal[] = [
   // --- 100% Free Samples by Mail (Freeflys Style - No Credit Card Required) ---
@@ -16,7 +16,7 @@ export const STATIC_DEALS: Deal[] = [
     shortDesc: 'Receive a free dermatologist-tested CeraVe hydrating facial cleanser and moisturizing lotion sample pack by mail.',
     fullDesc: 'CeraVe offers free physical sample kits containing their Hydrating Facial Cleanser and AM Facial Moisturizing Lotion with Broad Spectrum SPF 30. No credit card or shipping payment required.',
     valueText: '100% Free by Mail',
-    referralUrl: 'https://www.cerave.com/samples',
+    referralUrl: 'https://www.cerave.com/',
     upvotes: 720,
     claimsCount: 9400,
     verifiedDate: 'Today',
@@ -72,7 +72,7 @@ export const STATIC_DEALS: Deal[] = [
     shortDesc: 'Get free newborn diaper samples, sensitive wipes, and high-value savings coupons delivered by mail.',
     fullDesc: 'Pampers Club gifts new and expecting parents a free newborn sample kit containing Pampers Swaddlers diapers, Aqua Pure sensitive wipes, and high-value store discount coupons.',
     valueText: 'Free Sample Box',
-    referralUrl: 'https://www.pampers.com/en-us/offers-buys',
+    referralUrl: 'https://www.pampers.com/en-us/rewards',
     upvotes: 610,
     claimsCount: 8200,
     verifiedDate: 'Today',
@@ -154,7 +154,7 @@ export const STATIC_DEALS: Deal[] = [
     shortDesc: 'Get a free 2-strip sample box of Breathe Right Extra Strength clear nasal strips shipped directly to your door.',
     fullDesc: 'Try Breathe Right nasal strips completely free. Request a 2-count sample pack of Extra Strength Clear or Tan nasal strips with zero shipping charges.',
     valueText: '100% Free by Mail',
-    referralUrl: 'https://www.breatheright.com/free-sample.html',
+    referralUrl: 'https://www.breatheright.com/samples-sign-up/',
     upvotes: 410,
     claimsCount: 4800,
     verifiedDate: 'Today',
