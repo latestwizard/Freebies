@@ -1,5 +1,30 @@
 [
   {
+    "id": "fsf-3006e38b7b73",
+    "title": "FREE Duracell Batteries at Office Depot",
+    "provider": "Free Stuff Finder",
+    "logoText": "FSF",
+    "logoBg": "linear-gradient(135deg, #EC4899, #BE185D)",
+    "category": "samples",
+    "shortDesc": "FREE Duracell Batteries at Office Depot",
+    "fullDesc": "FREE Duracell Batteries at Office Depot. Curated by Free Stuff Finder bargain editors.",
+    "valueText": "100% Freebie",
+    "referralUrl": "https://www.freestufffinder.com/duracell-batteries-office-depot/",
+    "sourceUrl": "https://www.freestufffinder.com/duracell-batteries-office-depot/",
+    "status": "verified",
+    "verificationStatus": "source-listed",
+    "source": "fsf",
+    "createdAt": "2026-08-09",
+    "badge": "FSF",
+    "featured": false,
+    "steps": [
+      "Click \"Claim Freebie\" to open Free Stuff Finder offer page.",
+      "Follow the free sample or discount instructions.",
+      "Claim your offer directly from the merchant."
+    ],
+    "terms": "Sourced from Free Stuff Finder. Terms apply per merchant."
+  },
+  {
     "id": "fsf-59995c1b3fe1",
     "title": "1 Million FREE Dunkin’ Refreshers on August 10th",
     "provider": "Free Stuff Finder",
@@ -111,31 +136,6 @@
     "valueText": "100% Freebie",
     "referralUrl": "https://www.freestufffinder.com/bath-body-works-candles/",
     "sourceUrl": "https://www.freestufffinder.com/bath-body-works-candles/",
-    "status": "verified",
-    "verificationStatus": "source-listed",
-    "source": "fsf",
-    "createdAt": "2026-08-09",
-    "badge": "FSF",
-    "featured": false,
-    "steps": [
-      "Click \"Claim Freebie\" to open Free Stuff Finder offer page.",
-      "Follow the free sample or discount instructions.",
-      "Claim your offer directly from the merchant."
-    ],
-    "terms": "Sourced from Free Stuff Finder. Terms apply per merchant."
-  },
-  {
-    "id": "fsf-3bfd535b10db",
-    "title": "NativePath Collagen Buy 2 Get 1 FREE Value-Size Bags + FREE Mu...",
-    "provider": "Free Stuff Finder",
-    "logoText": "FSF",
-    "logoBg": "linear-gradient(135deg, #EC4899, #BE185D)",
-    "category": "samples",
-    "shortDesc": "NativePath Collagen Buy 2 Get 1 FREE Value-Size Bags + FREE Mug ($29 Value)",
-    "fullDesc": "NativePath Collagen Buy 2 Get 1 FREE Value-Size Bags + FREE Mug ($29 Value). Curated by Free Stuff Finder bargain editors.",
-    "valueText": "100% Freebie",
-    "referralUrl": "https://www.freestufffinder.com/nativepath-collagen-buy-2-get-1-free-value-size-bags-free-mug-29-value/",
-    "sourceUrl": "https://www.freestufffinder.com/nativepath-collagen-buy-2-get-1-free-value-size-bags-free-mug-29-value/",
     "status": "verified",
     "verificationStatus": "source-listed",
     "source": "fsf",
