@@ -90,6 +90,8 @@ export const SubmitDealModal: React.FC<SubmitDealModalProps> = ({
       claimsCount: 1,
       verifiedDate: 'Pending Review',
       status: 'pending',
+      verificationStatus: 'community-reported',
+      source: 'community',
       createdAt: new Date().toISOString().split('T')[0],
       badge: undefined,
       steps: stepsArray,

@@ -55,8 +55,9 @@ export const DealModal: React.FC<DealModalProps> = ({
   const isStale = isDealStale(deal, 45);
 
   const handleCopyLink = () => {
-    copyLink(deal.referralUrl);
-    addToast('Referral link copied to clipboard!', 'success');
+    const shareUrl = `${window.location.origin}/go/${deal.id}`;
+    copyLink(shareUrl);
+    addToast('Shortlink copied to clipboard!', 'success');
   };
 
   const handleCopyCode = () => {
@@ -70,7 +71,8 @@ export const DealModal: React.FC<DealModalProps> = ({
     onClaim(deal.id);
     trackEvent('deal_claimed_modal', { dealId: deal.id, provider: deal.provider });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
-    window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
+    const redirectUrl = `/go/${deal.id}`;
+    window.open(redirectUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleReport = () => {
@@ -216,9 +218,11 @@ export const DealModal: React.FC<DealModalProps> = ({
           <div style={{ fontWeight: 800, color: 'var(--success-color)', fontSize: '1.05rem' }}>
             🎁 Claim Value: {deal.valueText}
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {deal.claimsCount.toLocaleString()} community claims
-          </div>
+          {deal.claimsCount !== undefined && deal.claimsCount !== null && (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {deal.claimsCount.toLocaleString()} community claims
+            </div>
+          )}
         </div>
 
         {/* Full Overview Description */}

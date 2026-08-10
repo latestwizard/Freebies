@@ -13,8 +13,12 @@ export type DealBadge = 'HOT' | 'VERIFIED' | 'LIMITED' | 'FEATURED' | 'EXCLUSIVI
 
 export type DealStatus = 'pending' | 'verified' | 'expired' | 'rejected';
 
+export type ProvenanceSource = 'official' | 'reddit' | 'doc' | 'fsf' | 'community';
+
+export type VerificationStatus = 'staff-verified' | 'source-listed' | 'community-reported';
+
 export interface Deal {
-  id: string;
+  id: string; // Deterministic hash ID based on canonical URL or source GUID
   title: string;
   provider: string;
   logoText: string;
@@ -25,10 +29,13 @@ export interface Deal {
   valueText: string;
   referralUrl: string;
   promoCode?: string;
-  upvotes: number;
-  claimsCount: number;
-  verifiedDate: string;
+  upvotes?: number;
+  claimsCount?: number;
+  verifiedDate?: string;
   status: DealStatus;
+  verificationStatus: VerificationStatus;
+  source: ProvenanceSource;
+  sourceUrl?: string;
   verifiedAt?: string;
   createdAt: string;
   badge?: DealBadge;

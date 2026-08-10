@@ -17,6 +17,8 @@ const sampleDeal: Deal = {
   claimsCount: 50,
   verifiedDate: '2026-01-01',
   status: 'verified',
+  verificationStatus: 'staff-verified',
+  source: 'official',
   verifiedAt: '2026-01-01',
   createdAt: '2026-01-01',
   steps: ['Step 1'],

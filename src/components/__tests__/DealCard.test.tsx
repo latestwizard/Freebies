@@ -19,6 +19,8 @@ const mockDeal: Deal = {
   claimsCount: 150,
   verifiedDate: 'Today',
   status: 'verified',
+  verificationStatus: 'staff-verified',
+  source: 'official',
   verifiedAt: new Date().toISOString().split('T')[0],
   createdAt: '2026-08-01',
   badge: 'HOT',
@@ -52,7 +54,7 @@ describe('DealCard Component', () => {
     expect(screen.getByText(/🎁 \$100 Free Credit/i)).toBeInTheDocument();
   });
 
-  it('triggers onClaim and opens referral window when Claim button is clicked', () => {
+  it('triggers onClaim and opens referral window via /go/ shortlink when Claim button is clicked', () => {
     const onSelect = vi.fn();
     const onUpvote = vi.fn();
     const onBookmark = vi.fn();
@@ -77,7 +79,7 @@ describe('DealCard Component', () => {
     fireEvent.click(claimBtn);
 
     expect(onClaim).toHaveBeenCalledWith('test-deal-card');
-    expect(openSpy).toHaveBeenCalledWith('https://example.com/ref', '_blank', 'noopener,noreferrer');
+    expect(openSpy).toHaveBeenCalledWith('/go/test-deal-card', '_blank', 'noopener,noreferrer');
 
     openSpy.mockRestore();
   });

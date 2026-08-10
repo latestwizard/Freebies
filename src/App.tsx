@@ -88,37 +88,33 @@ export const App: React.FC = () => {
     });
   };
 
-  const handleUpvote = (id: string) => {
-    if (upvotedIds.includes(id)) {
-      setUpvotedIds(prev => prev.filter(i => i !== id));
-      setDeals(prev =>
-        prev.map(d => (d.id === id ? { ...d, upvotes: Math.max(0, d.upvotes - 1) } : d))
+  const handleUpvote = useCallback((id: string) => {
+    setUpvotedIds(prev => {
+      const isCurrentlyUpvoted = prev.includes(id);
+      setDeals(dealsPrev =>
+        dealsPrev.map(d => (d.id === id ? { ...d, upvotes: (d.upvotes || 0) + (isCurrentlyUpvoted ? -1 : 1) } : d))
       );
-    } else {
-      setUpvotedIds(prev => [...prev, id]);
-      setDeals(prev =>
-        prev.map(d => (d.id === id ? { ...d, upvotes: d.upvotes + 1 } : d))
-      );
-    }
-  };
+      return isCurrentlyUpvoted ? prev.filter(i => i !== id) : [...prev, id];
+    });
+  }, []);
 
-  const handleToggleBookmark = (id: string) => {
+  const handleToggleBookmark = useCallback((id: string) => {
     setBookmarkedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const handleClaim = (id: string) => {
+  const handleClaim = useCallback((id: string) => {
     setDeals(prev =>
-      prev.map(d => (d.id === id ? { ...d, claimsCount: d.claimsCount + 1 } : d))
+      prev.map(d => (d.id === id ? { ...d, claimsCount: (d.claimsCount || 0) + 1 } : d))
     );
-  };
+  }, []);
 
-  const handleReportExpired = (id: string) => {
+  const handleReportExpired = useCallback((id: string) => {
     setDeals(prev =>
       prev.map(d => (d.id === id ? { ...d, status: 'expired' } : d))
     );
-  };
+  }, []);
 
   const handleSubmitNewDeal = (newDeal: Deal) => {
     const customDeals = safeLoadLocalStorage<Deal[]>('freebieverse_custom_deals', [], Array.isArray);
@@ -153,7 +149,7 @@ export const App: React.FC = () => {
     let claimsSum = 0;
     let vCount = 0;
     deals.forEach(d => {
-      claimsSum += d.claimsCount;
+      claimsSum += d.claimsCount || 0;
       if (d.status === 'verified') vCount++;
     });
     return { totalClaimsCount: claimsSum, verifiedCount: vCount };

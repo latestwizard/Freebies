@@ -51,22 +51,24 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     onClaim(deal.id);
     trackEvent('deal_claimed', { dealId: deal.id, provider: deal.provider, title: deal.title });
     addToast(`Opening ${deal.provider} referral link...`, 'info');
-    window.open(deal.referralUrl, '_blank', 'noopener,noreferrer');
+    const redirectUrl = `/go/${deal.id}`;
+    window.open(redirectUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     trackEvent('deal_shared', { dealId: deal.id, title: deal.title });
+    const shareUrl = `${window.location.origin}/go/${deal.id}`;
 
     if (navigator.share) {
       navigator.share({
         title: deal.title,
         text: `Claim ${deal.title} on FreebieVerse!`,
-        url: deal.referralUrl,
+        url: shareUrl,
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(deal.referralUrl);
-      addToast('Referral link copied to clipboard!', 'success');
+      navigator.clipboard.writeText(shareUrl);
+      addToast('Share link copied to clipboard!', 'success');
     }
   };
 
@@ -296,13 +298,15 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             }}
           >
             <ThumbsUp size={14} fill={isUpvoted ? 'currentColor' : 'none'} />
-            <span>{deal.upvotes}</span>
+            <span>{(deal.upvotes ?? 0).toLocaleString()}</span>
           </button>
 
           {/* Claims Count */}
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            🔥 {deal.claimsCount.toLocaleString()} claimed
-          </span>
+          {deal.claimsCount !== undefined && deal.claimsCount !== null && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              🔥 {deal.claimsCount.toLocaleString()} claimed
+            </span>
+          )}
         </div>
 
         {/* Action Buttons */}
