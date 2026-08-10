@@ -1,12 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { INITIAL_DEALS } from '../src/data/deals';
-import aggregatedDealsImport from '../src/data/aggregatedDeals.json';
+import fs from 'fs';
+import path from 'path';
+import { STATIC_DEALS } from '../src/data/staticDeals';
 import { Deal } from '../src/types';
 
-function getArray<T>(imported: unknown): T[] {
-  if (Array.isArray(imported)) return imported;
-  if (imported && typeof imported === 'object' && 'default' in imported && Array.isArray((imported as { default: unknown }).default)) {
-    return (imported as { default: T[] }).default;
+function loadAggregatedDeals(): Deal[] {
+  try {
+    const jsonPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
+    if (fs.existsSync(jsonPath)) {
+      const content = fs.readFileSync(jsonPath, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[Vercel Serverless] Health endpoint failed to read aggregatedDeals.json:', err);
   }
   return [];
 }
@@ -31,8 +38,8 @@ const startTime = Date.now();
 
 export default function handler(_req: VercelRequest, res: VercelResponse) {
   try {
-    const staticDeals = getArray<Deal>(INITIAL_DEALS);
-    const scrapedList = getArray<Deal>(aggregatedDealsImport);
+    const scrapedList = loadAggregatedDeals();
+    const combinedDeals = [...STATIC_DEALS, ...scrapedList];
 
     const sourcesCount = {
       official: 0,
@@ -43,7 +50,7 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
 
     let newestScrapedDate = '';
 
-    for (const deal of staticDeals) {
+    for (const deal of combinedDeals) {
       if (deal && deal.source && deal.source in sourcesCount) {
         sourcesCount[deal.source as keyof typeof sourcesCount]++;
       }
@@ -52,14 +59,14 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const isHealthy = staticDeals.length >= 5;
+    const isHealthy = combinedDeals.length >= 5;
 
     const responsePayload: HealthStatusResponse = {
       status: isHealthy ? 'healthy' : 'degraded',
       timestamp: new Date().toISOString(),
-      totalDealsCount: staticDeals.length,
+      totalDealsCount: combinedDeals.length,
       scrapedDealsCount: scrapedList.length,
-      staticDealsCount: Math.max(0, staticDeals.length - scrapedList.length),
+      staticDealsCount: STATIC_DEALS.length,
       sources: sourcesCount,
       lastScrapedAt: newestScrapedDate || undefined,
       uptimeSeconds: Math.floor((Date.now() - startTime) / 1000),

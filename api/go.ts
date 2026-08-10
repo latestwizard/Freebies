@@ -1,29 +1,33 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { INITIAL_DEALS } from '../src/data/deals';
-import aggregatedDealsImport from '../src/data/aggregatedDeals.json';
+import fs from 'fs';
+import path from 'path';
+import { STATIC_DEALS } from '../src/data/staticDeals';
 import { Deal } from '../src/types';
 
 /**
- * Safely extracts an array from ESM/CJS default exports or direct JSON arrays.
+ * Safely loads scraped aggregated deals from disk via fs.readFileSync (Node.js ESM safe)
  */
-function getArray<T>(imported: unknown): T[] {
-  if (Array.isArray(imported)) return imported;
-  if (imported && typeof imported === 'object' && 'default' in imported && Array.isArray((imported as { default: unknown }).default)) {
-    return (imported as { default: T[] }).default;
+function loadAggregatedDeals(): Deal[] {
+  try {
+    const jsonPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
+    if (fs.existsSync(jsonPath)) {
+      const content = fs.readFileSync(jsonPath, 'utf8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('[Vercel Serverless] Failed to read aggregatedDeals.json from disk:', err);
   }
   return [];
 }
 
 /**
- * Indexes deals into a Map by deal ID for O(1) redirect lookups.
+ * Indexes static and scraped deals into a Map by deal ID for O(1) redirect lookups.
  */
 function getDealsMap(): Map<string, Deal> {
   const map = new Map<string, Deal>();
-
-  const initialList = getArray<Deal>(INITIAL_DEALS);
-  const aggregatedList = getArray<Deal>(aggregatedDealsImport);
-
-  const combined = [...initialList, ...aggregatedList];
+  const aggregated = loadAggregatedDeals();
+  const combined = [...STATIC_DEALS, ...aggregated];
 
   for (const deal of combined) {
     if (deal && typeof deal === 'object' && typeof deal.id === 'string' && deal.id) {
