@@ -27,7 +27,7 @@ describe('Vercel Serverless Function: api/go', () => {
     expect(res.redirect).toHaveBeenCalledWith(302, '/?error=deal_not_found');
   });
 
-  it('redirects 302 to actual referral URL for valid deal', () => {
+  it('redirects 302 to actual referral URL for digitalocean-credits', () => {
     const req = { query: { id: 'digitalocean-credits' } } as unknown as VercelRequest;
     const res = {
       setHeader: vi.fn(),
@@ -38,5 +38,18 @@ describe('Vercel Serverless Function: api/go', () => {
 
     expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache, no-store, must-revalidate');
     expect(res.redirect).toHaveBeenCalledWith(302, expect.stringContaining('digitalocean.com'));
+  });
+
+  it('redirects 302 to actual referral URL for pampers-baby-sample-box', () => {
+    const req = { query: { id: 'pampers-baby-sample-box' } } as unknown as VercelRequest;
+    const res = {
+      setHeader: vi.fn(),
+      redirect: vi.fn(),
+    } as unknown as VercelResponse;
+
+    handler(req, res);
+
+    expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache, no-store, must-revalidate');
+    expect(res.redirect).toHaveBeenCalledWith(302, expect.stringContaining('pampers.com'));
   });
 });

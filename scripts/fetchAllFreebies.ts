@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
-import { Deal, CategoryId, ProvenanceSource, VerificationStatus } from '../src/types';
+import { Deal } from '../src/types';
 
 /**
  * Unified Multi-Source Freebie Scraper (Parallelized TypeScript)

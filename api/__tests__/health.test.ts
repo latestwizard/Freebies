@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import handler from '../health';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
