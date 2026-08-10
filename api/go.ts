@@ -1,9 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { INITIAL_DEALS } from '../src/data/deals';
+import aggregatedDeals from '../src/data/aggregatedDeals.json';
 import { Deal } from '../src/types';
 
-// Pre-index deals into a Map at module load scope for O(1) lookup
-const dealsMap = new Map<string, Deal>(INITIAL_DEALS.map(d => [d.id, d]));
+// Merge static initial deals and scraped aggregated deals into an O(1) Map at module load scope
+const allDealsList: Deal[] = [...INITIAL_DEALS, ...(aggregatedDeals as Deal[])];
+const dealsMap = new Map<string, Deal>();
+
+// Store unique deals by ID
+for (const d of allDealsList) {
+  if (d && d.id && !dealsMap.has(d.id)) {
+    dealsMap.set(d.id, d);
+  }
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
