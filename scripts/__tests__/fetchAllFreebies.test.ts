@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateStableId, decodeEntities } from '../fetchAllFreebies.js';
+import { generateStableId, decodeEntities, isGenuineFreebie } from '../fetchAllFreebies.js';
 
 describe('Multi-Source Freebie Scraper Utility Suite', () => {
   describe('generateStableId', () => {
@@ -43,6 +43,20 @@ describe('Multi-Source Freebie Scraper Utility Suite', () => {
       const decoded = decodeEntities(input);
 
       expect(decoded).toBe('"Super" Deal" \'Test\'');
+    });
+  });
+
+  describe('isGenuineFreebie Filter', () => {
+    it('accepts genuine 100% freebies, physical samples, and free perks', () => {
+      expect(isGenuineFreebie('1 Million FREE Dunkin Refreshers on August 10th')).toBe(true);
+      expect(isGenuineFreebie('Free CeraVe Skincare Sample Pack')).toBe(true);
+      expect(isGenuineFreebie('$200 Free Cloud Credits')).toBe(true);
+    });
+
+    it('rejects paid product shopping discounts with non-zero price tags', () => {
+      expect(isGenuineFreebie('Starbucks Frappuccino 12-Pack for $17 Shipped at Amazon')).toBe(false);
+      expect(isGenuineFreebie('Old Navy Women’s Dresses From $5.60')).toBe(false);
+      expect(isGenuineFreebie('SiriusXM for $1', 'https://example.com/3-months-of-siriusxm-for-1-')).toBe(false);
     });
   });
 });

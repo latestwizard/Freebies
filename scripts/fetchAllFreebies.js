@@ -4,15 +4,17 @@ import crypto from 'crypto';
 import { XMLParser } from 'fast-xml-parser';
 
 /**
- * Unified Multi-Source Freebie Scraper with Integrity Safeguards & fast-xml-parser
+ * Unified Multi-Source Freebie Scraper with Integrity Safeguards & Strict Freebie Filter
  * 
  * Features:
- * 1. Fast XML Parser: Uses fast-xml-parser to handle XML nodes, attributes, CDATA, and namespaces cleanly.
- * 2. Deterministic Stable IDs: Uses SHA-256 hash of canonical URLs so IDs remain permanent across daily runs.
- * 3. Real Provenance & Verification: Distinguishes 'source-listed' and 'community-reported' from 'staff-verified'.
- * 4. Non-Destructive Caching: Retains last-known-good source cache if a feed suffers a transient outage.
- * 5. Robust Entity Decoding: Decodes numeric and named HTML entities (&amp;, &#038;, &#8217;, etc.).
- * 6. Webhook Alerts: Notifies Discord/Slack on feed anomalies.
+ * 1. Strict Freebie Filter: Only includes genuine 100% freebies, physical samples, cash bonuses, and 100% rebates.
+ *    Excludes paid store discounts (e.g. "$17 Shipped at Amazon", "$5.60 Dresses", or "$1 SiriusXM").
+ * 2. Fast XML Parser: Uses fast-xml-parser to handle XML nodes, attributes, CDATA, and namespaces cleanly.
+ * 3. Deterministic Stable IDs: Uses SHA-256 hash of canonical URLs so IDs remain permanent across daily runs.
+ * 4. Real Provenance & Verification: Distinguishes 'source-listed' and 'community-reported' from 'staff-verified'.
+ * 5. Non-Destructive Caching: Retains last-known-good source cache if a feed suffers a transient outage.
+ * 6. Robust Entity Decoding: Decodes numeric and named HTML entities (&amp;, &#038;, &#8217;, etc.).
+ * 7. Webhook Alerts: Notifies Discord/Slack on feed anomalies.
  */
 
 // Ensure cache directory exists
@@ -54,6 +56,36 @@ export function decodeEntities(str) {
     .replace(/&nbsp;/g, ' ')
     .replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1')
     .trim();
+}
+
+/**
+ * Checks whether an item title/URL represents an actual 100% freebie, sample, bonus, or 100% rebate
+ * and is NOT a paid product discount (e.g. "$17 Shipped", "$5.60", or "$1 SiriusXM").
+ */
+export function isGenuineFreebie(title, link = '') {
+  if (!title) return false;
+  const lowerTitle = title.toLowerCase();
+  const lowerLink = link.toLowerCase();
+
+  // Explicitly reject expired, non-freebie, or paid promotion items
+  if (lowerTitle.includes('expired') || lowerTitle.includes('do electronic wallets') || lowerTitle.includes('waiver') || lowerLink.includes('for-1-')) {
+    return false;
+  }
+
+  // If the title contains a paid dollar price (e.g. "$17", "$5.60", "$1.24", "$1") without explicit "100% free" or "rebate", reject it
+  if (/\$[\d.]+\s*(shipped|at amazon|at walmart|at target|for\s+\$)/i.test(title) &&
+      !lowerTitle.includes('100% free') && !lowerTitle.includes('free after rebate') && !lowerTitle.includes('free credit') && !lowerTitle.includes('free bonus')) {
+    return false;
+  }
+
+  // Must match genuine freebie indicators
+  return lowerTitle.includes('free') ||
+         lowerTitle.includes('sample') ||
+         lowerTitle.includes('freebie') ||
+         lowerTitle.includes('rebate') ||
+         lowerTitle.includes('bonus') ||
+         lowerTitle.includes('giveaway') ||
+         lowerTitle.includes('complimentary');
 }
 
 async function sendWebhookAlert(errors) {
@@ -132,7 +164,7 @@ export async function fetchReddit(errors) {
       const updated = entry.updated ? String(entry.updated) : new Date().toISOString();
 
       if (!rawTitle || !link) continue;
-      if (rawTitle.toLowerCase().includes('welcome') || rawTitle.toLowerCase().includes('expired')) continue;
+      if (!isGenuineFreebie(rawTitle, link)) continue;
 
       const cleanTitle = rawTitle.replace(/^\[.*?\]\s*/, '').trim();
       const stableId = generateStableId('reddit', link);
@@ -146,7 +178,7 @@ export async function fetchReddit(errors) {
         category: 'samples',
         shortDesc: cleanTitle,
         fullDesc: `${cleanTitle}. Community reported on Reddit r/freebies.`,
-        valueText: 'Free Sample',
+        valueText: '100% Free Sample',
         referralUrl: link,
         sourceUrl: link,
         status: 'verified',
@@ -175,8 +207,9 @@ export async function fetchReddit(errors) {
     if (fs.existsSync(cachePath)) {
       try {
         const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-        console.log(`📦 Loaded ${cached.length} last-known-good deals for Reddit.`);
-        return cached;
+        const filteredCached = cached.filter(d => isGenuineFreebie(d.title, d.referralUrl));
+        console.log(`📦 Loaded ${filteredCached.length} last-known-good deals for Reddit.`);
+        return filteredCached;
       } catch (cacheErr) {
         console.error('Failed to read Reddit cache:', cacheErr.message);
       }
@@ -213,9 +246,7 @@ export async function fetchDoctorOfCredit(errors) {
       const pubDate = item.pubDate ? String(item.pubDate) : new Date().toISOString();
 
       if (!rawTitle || !link) continue;
-
-      const lower = rawTitle.toLowerCase();
-      if (lower.includes('expired') || lower.includes('do electronic wallets') || lower.includes('waiver')) continue;
+      if (!isGenuineFreebie(rawTitle, link)) continue;
 
       const stableId = generateStableId('doc', link);
 
@@ -257,8 +288,9 @@ export async function fetchDoctorOfCredit(errors) {
     if (fs.existsSync(cachePath)) {
       try {
         const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-        console.log(`📦 Loaded ${cached.length} last-known-good deals for Doctor of Credit.`);
-        return cached;
+        const filteredCached = cached.filter(d => isGenuineFreebie(d.title, d.referralUrl));
+        console.log(`📦 Loaded ${filteredCached.length} last-known-good deals for Doctor of Credit.`);
+        return filteredCached;
       } catch (cacheErr) {
         console.error('Failed to read DoC cache:', cacheErr.message);
       }
@@ -295,15 +327,8 @@ export async function fetchFreeStuffFinder(errors) {
       const pubDate = item.pubDate ? String(item.pubDate) : new Date().toISOString();
 
       if (!rawTitle || !link) continue;
-      if (rawTitle.toLowerCase().includes('expired')) continue;
-
-      let valueText = 'See Offer Details';
-      if (rawTitle.toLowerCase().includes('free')) {
-        valueText = '100% Freebie';
-      } else if (rawTitle.includes('$')) {
-        const priceMatch = rawTitle.match(/\$[\d.]+/);
-        valueText = priceMatch ? `${priceMatch[0]} Deal` : 'Discount Deal';
-      }
+      // Strictly enforce genuine freebies only — reject paid products/discounts!
+      if (!isGenuineFreebie(rawTitle, link)) continue;
 
       const stableId = generateStableId('fsf', link);
 
@@ -316,7 +341,7 @@ export async function fetchFreeStuffFinder(errors) {
         category: 'samples',
         shortDesc: rawTitle,
         fullDesc: `${rawTitle}. Curated by Free Stuff Finder bargain editors.`,
-        valueText,
+        valueText: '100% Freebie',
         referralUrl: link,
         sourceUrl: link,
         status: 'verified',
@@ -345,8 +370,9 @@ export async function fetchFreeStuffFinder(errors) {
     if (fs.existsSync(cachePath)) {
       try {
         const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-        console.log(`📦 Loaded ${cached.length} last-known-good deals for Free Stuff Finder.`);
-        return cached;
+        const filteredCached = cached.filter(d => isGenuineFreebie(d.title, d.referralUrl));
+        console.log(`📦 Loaded ${filteredCached.length} last-known-good deals for Free Stuff Finder.`);
+        return filteredCached;
       } catch (cacheErr) {
         console.error('Failed to read FSF cache:', cacheErr.message);
       }
@@ -356,7 +382,7 @@ export async function fetchFreeStuffFinder(errors) {
 }
 
 async function main() {
-  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper (fast-xml-parser)...\n');
+  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper (Strict Freebies Only)...\n');
 
   const errors = [];
   const redditDeals = await fetchReddit(errors);
@@ -368,7 +394,7 @@ async function main() {
   if (allDeals.length > 0) {
     const outputPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
     fs.writeFileSync(outputPath, JSON.stringify(allDeals, null, 2));
-    console.log(`\n🎉 Saved ${allDeals.length} total live deals with stable IDs to ${outputPath}`);
+    console.log(`\n🎉 Saved ${allDeals.length} total 100% genuine freebie deals to ${outputPath}`);
   } else {
     console.error('\n❌ All sources failed and no cache available! Skipping aggregatedDeals.json overwrite.');
   }
