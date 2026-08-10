@@ -5,15 +5,15 @@ import { XMLParser } from 'fast-xml-parser';
 import { Deal, CategoryId, ProvenanceSource, VerificationStatus } from '../src/types';
 
 /**
- * Unified Multi-Source Freebie Scraper (TypeScript)
+ * Unified Multi-Source Freebie Scraper (Parallelized TypeScript)
  * 
  * Features:
- * 1. Convert Scraper to TypeScript: Full type safety for Deal interfaces.
- * 2. Fetch Timeout & Exponential Retry: Network requests use AbortController with 8s timeout & exponential backoff.
- * 3. Cross-Source Deduplication: Deduplicates offers across Doctor of Credit, FSF, and Reddit by URL & title.
- * 4. Schema Validation: Validates parsed objects against required Deal schema properties before publishing.
- * 5. ISO Date Normalization: Ensures createdAt, verifiedAt, and dates use standard YYYY-MM-DD format.
- * 6. Non-Destructive Caching: Retains last-known-good source dataset on network failure.
+ * 1. Parallel Source Fetches: Executes Reddit, Doctor of Credit, and FSF requests concurrently with Promise.all.
+ * 2. Response Size Monitoring: Logs payload byte sizes (KB) to monitor feed health & detect structural anomalies.
+ * 3. Rate-Limiting & Polite Headers: Staggers retries with exponential backoff & sends polite User-Agent headers.
+ * 4. Cross-Source Deduplication: Deduplicates offers across Doctor of Credit, FSF, and Reddit by URL & title.
+ * 5. Schema Validation: Validates parsed objects against required Deal schema properties before publishing.
+ * 6. ISO Date Normalization: Ensures createdAt, verifiedAt, and dates use standard YYYY-MM-DD format.
  */
 
 interface SourceError {
@@ -32,6 +32,8 @@ const xmlParser = new XMLParser({
   cdataPropName: '__cdata',
   trimValues: true,
 });
+
+export const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
 export function generateStableId(prefix: string, url: string): string {
   if (!url) return `${prefix}-${Date.now()}`;
@@ -140,20 +142,29 @@ export async function fetchWithRetry(url: string, maxRetries = 3, timeoutMs = 80
     try {
       const res = await fetch(url, {
         signal: controller.signal,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' }
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 FreebieVerseBot/1.0',
+          'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+          'X-Robots-Tag': 'noindex, nofollow',
+        }
       });
       clearTimeout(timer);
 
       if (!res.ok) throw new Error(`HTTP ${res.status} - ${res.statusText}`);
-      return await res.text();
+      
+      const payloadText = await res.text();
+      const payloadSizeKb = (Buffer.byteLength(payloadText, 'utf8') / 1024).toFixed(1);
+      console.log(`📊 Response received for ${url} (Size: ${payloadSizeKb} KB)`);
+
+      return payloadText;
     } catch (err: unknown) {
       clearTimeout(timer);
       lastError = err instanceof Error ? err : new Error(String(err));
       console.warn(`⚠️ Fetch attempt ${attempt}/${maxRetries} failed for ${url}: ${lastError.message}`);
 
       if (attempt < maxRetries) {
-        const backoffMs = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, backoffMs));
+        const backoffMs = Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 250);
+        await delay(backoffMs);
       }
     }
   }
@@ -207,10 +218,10 @@ async function sendWebhookAlert(errors: SourceError[]): Promise<void> {
 // 1. Fetch Reddit r/freebies Atom Feed
 export async function fetchReddit(errors: SourceError[]): Promise<Deal[]> {
   const cachePath = path.join(sourcesDir, 'reddit.json');
-  console.log('🤖 [1/3] Parsing Reddit r/freebies Atom XML feed...');
+  console.log('🤖 [1/3] Fetching Reddit r/freebies RSS feed...');
 
   try {
-    const xmlText = await fetchWithRetry('https://old.reddit.com/r/freebies/.rss');
+    const xmlText = await fetchWithRetry('https://www.reddit.com/r/freebies/new.rss');
     const parsedObj = xmlParser.parse(xmlText);
 
     const entries = parsedObj?.feed?.entry
@@ -296,7 +307,7 @@ export async function fetchReddit(errors: SourceError[]): Promise<Deal[]> {
 // 2. Fetch Doctor of Credit RSS 2.0 Feed
 export async function fetchDoctorOfCredit(errors: SourceError[]): Promise<Deal[]> {
   const cachePath = path.join(sourcesDir, 'doc.json');
-  console.log('💳 [2/3] Parsing Doctor of Credit RSS 2.0 XML feed...');
+  console.log('💳 [2/3] Fetching Doctor of Credit RSS 2.0 XML feed...');
 
   try {
     const xmlText = await fetchWithRetry('https://www.doctorofcredit.com/category/free-money/feed/');
@@ -378,7 +389,7 @@ export async function fetchDoctorOfCredit(errors: SourceError[]): Promise<Deal[]
 // 3. Fetch Free Stuff Finder RSS 2.0 Feed
 export async function fetchFreeStuffFinder(errors: SourceError[]): Promise<Deal[]> {
   const cachePath = path.join(sourcesDir, 'fsf.json');
-  console.log('🎁 [3/3] Parsing Free Stuff Finder RSS 2.0 XML feed...');
+  console.log('🎁 [3/3] Fetching Free Stuff Finder RSS 2.0 XML feed...');
 
   try {
     const xmlText = await fetchWithRetry('https://www.freestufffinder.com/feed/');
@@ -458,20 +469,27 @@ export async function fetchFreeStuffFinder(errors: SourceError[]): Promise<Deal[
 }
 
 async function main(): Promise<void> {
-  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper (TypeScript + Retries + Deduplication)...\n');
+  const startTime = Date.now();
+  console.log('🚀 Starting Multi-Source Freebie Aggregator Scraper (Parallelized + Response Metrics)...\n');
 
   const errors: SourceError[] = [];
-  const redditDeals = await fetchReddit(errors);
-  const docDeals = await fetchDoctorOfCredit(errors);
-  const fsfDeals = await fetchFreeStuffFinder(errors);
+
+  // Execute all 3 feed fetches concurrently using Promise.all
+  const [redditDeals, docDeals, fsfDeals] = await Promise.all([
+    fetchReddit(errors),
+    fetchDoctorOfCredit(errors),
+    fetchFreeStuffFinder(errors),
+  ]);
 
   const rawDeals = [...redditDeals, ...docDeals, ...fsfDeals];
   const uniqueDeals = deduplicateDeals(rawDeals);
 
+  const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
+
   if (uniqueDeals.length > 0) {
     const outputPath = path.resolve(process.cwd(), 'src/data/aggregatedDeals.json');
     fs.writeFileSync(outputPath, JSON.stringify(uniqueDeals, null, 2));
-    console.log(`\n🎉 Saved ${uniqueDeals.length} unique 100% genuine freebie deals to ${outputPath}`);
+    console.log(`\n🎉 Saved ${uniqueDeals.length} unique 100% genuine freebie deals in ${durationSec}s to ${outputPath}`);
   } else {
     console.error('\n❌ All sources failed and no cache available! Skipping aggregatedDeals.json overwrite.');
   }
